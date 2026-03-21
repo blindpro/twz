@@ -1,0 +1,945 @@
+enemy@[] enemies(0);
+class enemy
+{
+int beacontime=random(600,1400);
+int fallheight;
+int falltime=40;
+bool falling;
+bool reloading;
+bool hasammo;
+int ammo;
+int cartridges;
+int target;
+bool onplayer;
+int facing=0.0;
+int weapon;
+bool dead;
+int attackrange;
+int attacktime;
+int damage;
+int seerange;
+int seen;
+int dx=-1, dy=-1, dz=-1;
+int health;
+int movetime=random(180,300);
+int type;
+timer beacontimer, falltimer, reloadtimer, attacktimer, movetimer, dirtimer, burntimer, turrettimer, item_grabbertimer, enemy_grabbertimer, stuntimer, stunagaintimer, unstuntrytimer;;
+double x,y,z;
+string hitby="";
+string hitby2="";
+string hitbyweapon="";
+int shielded;
+int shieldshots;
+sound_object voice, burnloop, item_grabberloop, enemy_grabberloop;
+int dirtime=random(10000,100000);
+string ride="";
+int deathsound;
+int useitem;
+int timebombs=0;
+int mines=0;
+int molotov_cocktails=0;
+int grenades=0;
+int turrets=0;
+int item_grabbers=0;
+int enemy_grabbers=0;
+int enemy_callers=0;
+int coins=0;
+int sandbags=0;
+bool burned=false;
+int burn=0;
+bool burnsound=false;
+bool can_move=true;
+bool itemgrabber=false;
+int item_grabber=0;
+bool item_grabbersound=false;
+bool enemygrabber=false;
+int enemy_grabber=0;
+bool enemy_grabbersound=false;
+string invehicle="";
+int stuntime;
+bool stunned=false;
+int unstuntrys;
+int stunagaintime=0;
+enemy(int t, int ex, int ey, int ez, string einvehicle="")
+{
+type=t;
+invehicle=einvehicle;
+if(type==1)
+{
+x=ex;
+y=ey;
+z=ez;
+health=random(1000,10000);
+seerange=random(15,25);
+weapon=random(46,64);
+hasammo=weapons[weapon].hasammo;
+cartridges=random(10,50);
+attackrange=weapons[weapon].range;
+damage=weapons[weapon].damage;
+attacktime=weapons[weapon].time;
+shielded=0;
+shieldshots=0;
+voice.load_looped("police"+random(1,7));
+voice.play();
+}
+else if(type==2)
+{
+x=ex;
+y=ey;
+z=ez;
+health=random(5000,25000);
+seerange=random(5,15);
+weapon=random(73,74);
+hasammo=weapons[weapon].hasammo;
+cartridges=random(10,50);
+attackrange=weapons[weapon].range;
+damage=weapons[weapon].damage;
+attacktime=weapons[weapon].time;
+shielded=0;
+shieldshots=0;
+voice.load_looped("tank"+random(1,4));
+voice.play();
+}
+else if(type==3)
+{
+x=ex;
+y=ey;
+z=ez+random(1,4);
+health=random(1000,15000);
+seerange=random(5,35);
+weapon=random(68,72);
+hasammo=weapons[weapon].hasammo;
+cartridges=random(10,100);
+attackrange=weapons[weapon].range;
+damage=weapons[weapon].damage;
+attacktime=weapons[weapon].time;
+shielded=0;
+shieldshots=0;
+voice.load_looped("aircraft"+random(1,11));
+voice.play();
+}
+else if(type==4)
+{
+x=ex;
+y=ey;
+z=ez+random(1,4);
+health=random(1000,15000);
+seerange=random(5,35);
+weapon=random(15,45);
+hasammo=weapons[weapon].hasammo;
+cartridges=random(10,100);
+attackrange=weapons[weapon].range;
+damage=weapons[weapon].damage;
+attacktime=weapons[weapon].time;
+shielded=0;
+shieldshots=0;
+voice.load_looped("helicopter"+random(1,32));
+voice.play();
+}
+else if(type==5)
+{
+x=ex;
+y=ey;
+z=ez+random(1,4);
+health=random(1000,5000);
+speed=random(350,500);
+seerange=0;
+weapon=random(2,6);
+hasammo=false;
+cartridges=0;
+attackrange=0;
+damage=0;
+attacktime=0;
+shielded=0;
+shieldshots=0;
+int n=random(1,2);
+if(n==1) voice.load_looped("car_"+random(1,84));
+else if(n==2) voice.load_looped("npc_"+random(1,36));
+voice.play();
+}
+else if(type==6)
+{
+x=ex;
+y=ey;
+z=ez+random(1,4);
+health=random(45000,50000);
+speed=random(400,800);
+seerange=0;
+weapon=random(2,3);
+hasammo=false;
+cartridges=0;
+attackrange=0;
+damage=0;
+attacktime=0;
+shielded=0;
+shieldshots=0;
+voice.load_looped("bus"+random(1,4));
+voice.play();
+}
+else if(invehicle=="police car")
+{
+x=ex;
+y=ey;
+z=ez;
+health=0;
+seerange=0;
+weapon=random(46,64);
+hasammo=weapons[weapon].hasammo;
+cartridges=random(10,50);
+attackrange=weapons[weapon].range;
+damage=weapons[weapon].damage;
+attacktime=weapons[weapon].time;
+shielded=0;
+shieldshots=0;
+}
+else if(invehicle=="fighter")
+{
+x=ex;
+y=ey;
+z=ez;
+health=0;
+seerange=0;
+weapon=random(15,74);
+hasammo=weapons[weapon].hasammo;
+cartridges=random(10,50);
+attackrange=weapons[weapon].range;
+damage=weapons[weapon].damage;
+attacktime=weapons[weapon].time;
+shielded=1;
+shieldshots=random(0,10);
+}
+else if(invehicle=="vehicle")
+{
+x=ex;
+y=ey;
+z=ez;
+health=0;
+seerange=0;
+weapon=random(0,1);
+hasammo=false;
+cartridges=0;
+attackrange=0;
+damage=0;
+attacktime=0;
+shielded=0;
+shieldshots=0;
+}
+else
+{
+x=ex;
+y=ey;
+z=ez;
+health=random(100,1000);
+seerange=random(5,10);
+weapon=random(0,67);
+hasammo=weapons[weapon].hasammo;
+cartridges=random(5,15);
+attackrange=weapons[weapon].range;
+damage=weapons[weapon].damage;
+attacktime=weapons[weapon].time;
+shielded=random(0,1);
+shieldshots=random(0,10);
+}
+}
+void stun(int ms)
+{
+if(this.stunagaintimer.elapsed<=this.stunagaintime)
+{
+return;
+}
+else
+{
+this.stunagaintime=0;
+this.stunagaintimer.restart();
+}
+stunned=true;
+stuntime=ms;
+stuntimer.restart();
+this.stunagaintime=ms;
+}
+}
+void eloop()
+{
+for (uint i=0; i<enemies.length(); i++)
+{
+if(enemies[i].burned and enemies[i].dead==false) position_sound_3d(enemies[i].burnloop, me.x, me.y, me.z, enemies[i].x, enemies[i].y, enemies[i].z, facing, 10, 5, 5, 0, 100, 0);
+if(enemies[i].itemgrabber and enemies[i].dead==false) position_sound_3d(enemies[i].item_grabberloop, me.x, me.y, me.z, enemies[i].x, enemies[i].y, enemies[i].z, facing, 10, 5, 5, 0, 100, 0);
+if(enemies[i].enemygrabber and enemies[i].dead==false) position_sound_3d(enemies[i].enemy_grabberloop, me.x, me.y, me.z, enemies[i].x, enemies[i].y, enemies[i].z, facing, 10, 5, 5, 0, 100, 0);
+if(enemies[i].type<7 and enemies[i].dead==false)
+{
+position_sound_3d(enemies[i].voice, me.x, me.y, me.z, enemies[i].x, enemies[i].y, enemies[i].z, facing, 10, 5, 5, 0, 100, 0);
+}
+else
+{
+if(enemies[i].beacontimer.elapsed>=enemies[i].beacontime and enemies[i].dead==false)
+{
+enemies[i].beacontimer.restart();
+p.play_3d("beacon",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+}
+if(get_tile_at(enemies[i].x,enemies[i].y,enemies[i].z)=="" and enemies[i].falling==false and enemies[i].type>6)
+{
+p.play_3d("fall",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].falling=true;
+enemies[i].x=enemies[i].x;
+enemies[i].y=enemies[i].y;
+enemies[i].z=enemies[i].z;
+}
+if(enemies[i].falling==true and enemies[i].falltimer.elapsed>=enemies[i].falltime)
+{
+enemies[i].falltimer.restart();
+enemies[i].z-=1;
+enemies[i].fallheight+=1;
+if(get_tile_at(enemies[i].x,enemies[i].y,enemies[i].z)!="")
+{
+enemies[i].x=enemies[i].x;
+enemies[i].y=enemies[i].y;
+enemies[i].z=enemies[i].z;
+enemies[i].falling=false;
+if(enemies[i].fallheight>=10) p.play_3d(get_tile_at2(enemies[i].x,enemies[i].y,enemies[i].z)+"fall",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+else p.play_3d(get_tile_at2(enemies[i].x,enemies[i].y,enemies[i].z)+"land",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+enemies[i].fallheight=0;
+}
+}
+if(enemies[i].shielded==1 and enemies[i].shieldshots<1)
+{
+p.play_3d("shieldbreak",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].shielded=0;
+}
+if(enemies[i].cartridges==0 and enemies[i].weapon>=12)
+{
+if(enemies[i].type>6)
+{
+enemies[i].weapon=random(0,11);
+p.play_3d(weapons[enemies[i].weapon].name+"draw",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else
+{
+enemies[i].cartridges+=random(10,100);
+}
+}
+if(enemies[i].cartridges>=1 and enemies[i].weapon<12)
+{
+if(enemies[i].type==1) enemies[i].weapon=random(46,64);
+else if(enemies[i].type==2) enemies[i].weapon=random(73,74);
+else if(enemies[i].type==3) enemies[i].weapon=random(68,72);
+else if(enemies[i].type==4) enemies[i].weapon=random(15,45);
+else if(enemies[i].type==5) enemies[i].weapon=random(2,6);
+else if(enemies[i].type==6) enemies[i].weapon=random(2,3);
+else enemies[i].weapon=random(12,67);
+p.play_3d(weapons[enemies[i].weapon].name+"draw",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+if(enemies[i].ammo<1 and enemies[i].reloading==false and enemies[i].cartridges>0)
+{
+int n=random(1,2);
+if(n==1)
+{
+if(enemies[i].type>6) p.play_3d(weapons[enemies[i].weapon].name+"reload",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].reloading=true;
+enemies[i].reloadtimer.restart();
+}
+else if(n==2)
+{
+if(enemies[i].type==1) enemies[i].weapon=random(46,64);
+else if(enemies[i].type==2) enemies[i].weapon=random(73,74);
+else if(enemies[i].type==3) enemies[i].weapon=random(68,72);
+else if(enemies[i].type==4) enemies[i].weapon=random(15,45);
+else if(enemies[i].type==5) enemies[i].weapon=random(2,6);
+else if(enemies[i].type==6) enemies[i].weapon=random(2,3);
+else
+{
+enemies[i].weapon=random(0,67);
+p.play_3d(weapons[enemies[i].weapon].name+"draw",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+}
+}
+if(enemies[i].reloadtimer.elapsed>=weapons[enemies[i].weapon].reloadtime and enemies[i].reloading==true and enemies[i].can_move==true)
+{
+enemies[i].ammo=weapons[enemies[i].weapon].maxammo;
+enemies[i].cartridges-=1;
+enemies[i].reloading=false;
+}
+if(enemies[i].stunned==true and enemies[i].stuntimer.elapsed>=enemies[i].stuntime)
+{
+enemies[i].stunned=false;
+}
+if(enemies[i].dx==-1 and enemies[i].dy==-1 and enemies[i].dz==-1)
+{
+enemies[i].target=random(0,enemies.length()-1);
+if(enemies[i].target==i)
+{
+enemies[i].target=-1;
+}
+if(enemies[i].target==-1)
+{
+enemies[i].dx=me.x;
+enemies[i].dy=me.y;
+enemies[i].dz=me.z;
+}
+else
+{
+enemies[i].dx=enemies[enemies[i].target].x;
+enemies[i].dy=enemies[enemies[i].target].y;
+enemies[i].dz=enemies[enemies[i].target].z;
+}
+}
+if(enemies[i].target>=enemies.length())
+{
+enemies[i].target=random(0,enemies.length()-1);
+if(enemies[i].target==i)
+{
+enemies[i].target=-1;
+}
+if(enemies[i].target==-1)
+{
+enemies[i].dx=me.x;
+enemies[i].dy=me.y;
+enemies[i].dz=me.z;
+}
+else
+{
+enemies[i].dx=enemies[enemies[i].target].x;
+enemies[i].dy=enemies[enemies[i].target].y;
+enemies[i].dz=enemies[enemies[i].target].z;
+}
+}
+if(enemies[i].target!=-1)
+{
+enemies[i].dx=enemies[enemies[i].target].x;
+enemies[i].dy=enemies[enemies[i].target].y;
+enemies[i].dz=enemies[enemies[i].target].z;
+enemies[i].onplayer=false;
+}
+else if(enemies[i].target==-1)
+{
+enemies[i].dx=me.x;
+enemies[i].dy=me.y;
+enemies[i].dz=me.z;
+enemies[i].onplayer=true;
+}
+if(enemies[i].dx>enemies[i].x-weapons[enemies[i].weapon].range and enemies[i].dx<enemies[i].x+weapons[enemies[i].weapon].range and enemies[i].dy>enemies[i].y-weapons[enemies[i].weapon].range and enemies[i].dy<enemies[i].y+weapons[enemies[i].weapon].range and enemies[i].z==enemies[i].z and enemies[i].attacktimer.elapsed>=(weapons[enemies[i].weapon].time) and enemies[i].dead==false and (enemies[i].weapon>=12 and enemies[i].ammo>0 or enemies[i].weapon<12) and enemies[i].type!=5 and enemies[i].type!=6 and enemies[i].can_move==true)
+{
+enemies[i].attacktimer.restart();
+enemies[i].useitem=random(1, 100);
+if(enemies[i].useitem==1 and (enemies[i].type>6?enemies[i].timebombs>=0:enemies[i].health>random(1000,5000)))
+{
+string owner;
+if(enemies[i].type==1) owner="a police";
+else if(enemies[i].type==2) owner="a tank";
+else if(enemies[i].type==3) owner="an aircraft";
+else if(enemies[i].type==4) owner="a helicopter";
+else if(enemies[i].type==5) owner="a vehicle";
+else if(enemies[i].type==6) owner="a bus";
+else owner="an enemy";
+spawn_timebomb(enemies[i].x,enemies[i].y,enemies[i].z,owner);
+if(enemies[i].type>6) enemies[i].timebombs--;
+}
+else if(enemies[i].useitem==2 and (enemies[i].type>6?enemies[i].mines>=0:enemies[i].health>random(1000,5000)))
+{
+string owner;
+if(enemies[i].type==1) owner="a police";
+else if(enemies[i].type==2) owner="a tank";
+else if(enemies[i].type==3) owner="an aircraft";
+else if(enemies[i].type==4) owner="a helicopter";
+else if(enemies[i].type==5) owner="a vehicle";
+else if(enemies[i].type==6) owner="a bus";
+else owner="an enemy";
+if(enemies[i].facing==Left) spawn_mine(enemies[i].x-2,enemies[i].y,enemies[i].z,owner);
+else if(enemies[i].facing==Right) spawn_mine(enemies[i].x+2,enemies[i].y,enemies[i].z,owner);
+else if(enemies[i].facing==Backward) spawn_mine(enemies[i].x,enemies[i].y-2,enemies[i].z,owner);
+else if(enemies[i].facing==Forward) spawn_mine(enemies[i].x,enemies[i].y+2,enemies[i].z,owner);
+else
+{
+int where=random(1,4);
+if(where==1) spawn_mine(enemies[i].x-random(2,2),enemies[i].y,enemies[i].z,owner);
+else if(where==2) spawn_mine(enemies[i].x+random(2,2),enemies[i].y,enemies[i].z,owner);
+else if(where==3) spawn_mine(enemies[i].x,enemies[i].y-random(2,2),enemies[i].z,owner);
+else if(where==4) spawn_mine(enemies[i].x,enemies[i].y+random(2,2),enemies[i].z,owner);
+}
+if(enemies[i].type>6) enemies[i].mines--;
+}
+else if(enemies[i].useitem==3 and (enemies[i].type>6?enemies[i].molotov_cocktails>=0:enemies[i].health>random(1000,5000)))
+{
+string owner;
+if(enemies[i].type==1) owner="a police";
+else if(enemies[i].type==2) owner="a tank";
+else if(enemies[i].type==3) owner="an aircraft";
+else if(enemies[i].type==4) owner="a helicopter";
+else if(enemies[i].type==5) owner="a vehicle";
+else if(enemies[i].type==6) owner="a bus";
+else owner="an enemy";
+spawn_bullet(weapons[75].damage,weapons[75].range,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing,weapons[75].speed,i,75,owner);
+if(enemies[i].type>6) enemies[i].molotov_cocktails--;
+}
+else if(enemies[i].useitem==4 and (enemies[i].type>6?enemies[i].turrets>=0:enemies[i].health>random(1000,5000)))
+{
+p.play_3d("turretplace",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].can_move=false;
+if(enemies[i].turrettimer.elapsed>12768)
+{
+enemies[i].turrettimer.restart();
+string owner;
+if(enemies[i].type==1) owner="a police";
+else if(enemies[i].type==2) owner="a tank";
+else if(enemies[i].type==3) owner="an aircraft";
+else if(enemies[i].type==4) owner="a helicopter";
+else if(enemies[i].type==5) owner="a vehicle";
+else if(enemies[i].type==6) owner="a bus";
+else owner="an enemy";
+spawn_turret(enemies[i].x,enemies[i].y,enemies[i].z,owner);
+enemies[i].can_move=true;
+enemies[i].turrets--;
+enemies[i].weapon=random(0,67);
+}
+}
+else if(enemies[i].useitem==5 and (enemies[i].type>6?enemies[i].item_grabbers>=0:enemies[i].health<random(100,500)))
+{
+enemies[i].itemgrabber=true;
+}
+else if(enemies[i].useitem==6 and (enemies[i].type>6?enemies[i].grenades>=0:enemies[i].health>random(1000,5000)))
+{
+string owner;
+if(enemies[i].type==1) owner="a police";
+else if(enemies[i].type==2) owner="a tank";
+else if(enemies[i].type==3) owner="an aircraft";
+else if(enemies[i].type==4) owner="a helicopter";
+else if(enemies[i].type==5) owner="a vehicle";
+else if(enemies[i].type==6) owner="a bus";
+else owner="an enemy";
+spawn_bullet(weapons[76].damage,weapons[76].range,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing,weapons[76].speed,i,76,owner);
+if(enemies[i].type>6) enemies[i].grenades--;
+}
+if(weapons[enemies[i].weapon].name=="knife") p.play_3d("knife"+random(1,4),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[enemies[i].weapon].name=="blake_sword") p.play_3d("blake_sword"+random(1,7),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[enemies[i].weapon].name=="short_sword" or weapons[enemies[i].weapon].name=="long_sword" or weapons[enemies[i].weapon].name=="stp106_long_barreled_pistol" or weapons[enemies[i].weapon].name=="grenade_launcher" or weapons[enemies[i].weapon].name=="cannon2") p.play_3d(weapons[enemies[i].weapon].name+""+random(1,3),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else p.play_3d(weapons[enemies[i].weapon].name,me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d(weapons[enemies[i].weapon].name+"dist",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+string owner;
+if(enemies[i].type==1) owner="a police";
+else if(enemies[i].type==2) owner="a tank";
+else if(enemies[i].type==3) owner="an aircraft";
+else if(enemies[i].type==4) owner="a helicopter";
+else if(enemies[i].type==5) owner="a vehicle";
+else if(enemies[i].type==6) owner="a bus";
+else owner="an enemy";
+spawn_bullet(weapons[enemies[i].weapon].damage,weapons[enemies[i].weapon].range,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing,weapons[enemies[i].weapon].speed,i,enemies[i].weapon,owner);
+if(weapons[enemies[i].weapon].maxammo>0)
+{
+enemies[i].ammo-=1;
+}
+else if(enemies[i].useitem==7 and (enemies[i].type>6?enemies[i].sandbags>=0:enemies[i].health>random(1000,5000)))
+{
+string owner;
+if(enemies[i].type==1) owner="a police";
+else if(enemies[i].type==2) owner="a tank";
+else if(enemies[i].type==3) owner="an aircraft";
+else if(enemies[i].type==4) owner="a helicopter";
+else if(enemies[i].type==5) owner="a vehicle";
+else if(enemies[i].type==6) owner="a bus";
+else owner="an enemy";
+spawn_sandbag(enemies[i].x,enemies[i].y,enemies[i].z,owner);
+enemies[i].sandbags--;
+}
+else if(enemies[i].useitem==8 and (enemies[i].type>6?enemies[i].enemy_grabbers>=0:enemies[i].health<random(100,500)))
+{
+enemies[i].enemygrabber=true;
+}
+else if(enemies[i].useitem==9 and (enemies[i].type>6?enemies[i].enemy_callers>=0:enemies[i].health>random(1000,5000)))
+{
+p.play_3d("enemy_caller",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+for (uint i2=0; i2<enemies.length(); i2++)
+{
+enemies[i2].target=i;
+enemies[i2].dx=enemies[i].x;
+enemies[i2].dy=enemies[i].y;
+enemies[i2].dz=enemies[i].z;
+}
+}
+
+}
+if(enemies[i].health<=0 and enemies[i].dead==false)
+{
+if(enemies[i].type==1 or enemies[i].type==5)
+{
+enemies[i].deathsound=p.play_3d("policedeath"+random(1,8),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("policedeathdist"+random(1,5),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+enemies[i].voice.close();
+}
+else if(enemies[i].type==2)
+{
+enemies[i].deathsound=p.play_3d("tankexplode"+random(1,2),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].voice.close();
+}
+else if(enemies[i].type==3 or enemies[i].type==4)
+{
+enemies[i].deathsound=p.play_3d("explode"+random(1,28),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].voice.close();
+}
+else if(enemies[i].type==6)
+{
+enemies[i].deathsound=p.play_3d("busdestroy",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].voice.close();
+}
+else
+{
+p.play_stationary("kill"+random(1,2),0,100,0,0,false);
+int t=enemies[i].type-6;
+enemies[i].deathsound=p.play_3d("enemy"+t+"death",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+enemies[i].burnloop.close();
+enemies[i].item_grabberloop.close();
+enemies[i].enemy_grabberloop.close();
+if(string_contains(enemies[i].hitby2,"a fire",1)>-1 or enemies[i].burned) p.play_3d("fire_kill",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(enemies[i].hitby=="")
+{
+if(enemies[i].type==1) add_buffer_item("kills",killmsgnohitby2("a police car",mapnickname));
+else if(enemies[i].type==2) add_buffer_item("kills",killmsgnohitby2("a tank",mapnickname));
+else if(enemies[i].type==3) add_buffer_item("kills",killmsgnohitby2("an aircraft",mapnickname));
+else if(enemies[i].type==4) add_buffer_item("kills",killmsgnohitby2("a helicopter",mapnickname));
+else if(enemies[i].type==5) add_buffer_item("kills",killmsgnohitby2("a vehicle",mapnickname));
+else if(enemies[i].type==6) add_buffer_item("kills",killmsgnohitby2("a bus",mapnickname));
+else add_buffer_item("kills",killmsgnohitby("an enemy",mapnickname));
+}
+else if(enemies[i].hitbyweapon!="")
+{
+if(enemies[i].type==1) add_buffer_item("kills",killmsgw2("a police car",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname,enemies[i].hitbyweapon));
+else if(enemies[i].type==2) add_buffer_item("kills",killmsgw2("a tank",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname,enemies[i].hitbyweapon));
+else if(enemies[i].type==3) add_buffer_item("kills",killmsgw2("an aircraft",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname,enemies[i].hitbyweapon));
+else if(enemies[i].type==4) add_buffer_item("kills",killmsgw2("a helicopter",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname,enemies[i].hitbyweapon));
+else if(enemies[i].type==5) add_buffer_item("kills",killmsgw2("a vehicle",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname,enemies[i].hitbyweapon));
+else if(enemies[i].type==6) add_buffer_item("kills",killmsgw2("a bus",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname,enemies[i].hitbyweapon));
+else add_buffer_item("kills",killmsgw("an enemy",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname,enemies[i].hitbyweapon));
+}
+else
+{
+if(enemies[i].type==1) add_buffer_item("kills",killmsg2("a police car",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname));
+else if(enemies[i].type==2) add_buffer_item("kills",killmsg2("a tank",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname));
+else if(enemies[i].type==3) add_buffer_item("kills",killmsg2("an aircraft",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname));
+else if(enemies[i].type==4) add_buffer_item("kills",killmsg2("a helicopter",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname));
+else if(enemies[i].type==5) add_buffer_item("kills",killmsg2("a vehicle",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname));
+else if(enemies[i].type==6) add_buffer_item("kills",killmsg2("a bus",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname));
+else add_buffer_item("kills",killmsg("an enemy",(enemies[i].hitby2=="me"?"you":enemies[i].hitby2),mapnickname));
+}
+if(enemies[i].hitby=="me") kills++;
+if(enemies[i].type==1)
+{
+for (uint i2=0; i2<random(1,4); i2++)
+{
+spawn_enemy(random(7,enemies.length()-1),enemies[i].x,enemies[i].y,enemies[i].z,"police car");
+}
+}
+else if(enemies[i].type==2 or enemies[i].type==3 or enemies[i].type==4)
+{
+for (uint i2=0; i2<random(1,3); i2++)
+{
+spawn_enemy(random(7,enemies.length()-1),enemies[i].x,enemies[i].y,enemies[i].z,"fighter");
+}
+}
+else if(enemies[i].type==5)
+{
+for (uint i2=0; i2<random(1,4); i2++)
+{
+spawn_enemy(random(7,enemies.length()-1),enemies[i].x,enemies[i].y,enemies[i].z,"vehicle");
+}
+}
+else if(enemies[i].type==6)
+{
+for (uint i2=0; i2<random(5,25); i2++)
+{
+spawn_enemy(random(7,enemies.length()-1),enemies[i].x,enemies[i].y,enemies[i].z,"vehicle");
+}
+}
+enemies[i].dead=true;
+}
+if(!p.sound_is_playing(enemies[i].deathsound) and enemies[i].dead==true)
+{
+if(enemies[i].type>6) p.play_3d("bodyfall_"+random(1,8),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(enemies[i].type!=5 and enemies[i].type!=6)
+{
+if(enemies[i].weapon>1 and enemies[i].weapon<75) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,weapons[enemies[i].weapon].name,1);
+if(enemies[i].weapon>11 and enemies[i].weapon<75) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,weapons[enemies[i].weapon].ammotype,enemies[i].cartridges*weapons[enemies[i].weapon].maxammo+enemies[i].ammo);
+int n=random(1,5);
+if(n==1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"timebomb",1+enemies[i].timebombs);
+else if(n==2) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"mine",1+enemies[i].mines);
+else if(n==3) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"molotov_cocktail",1+enemies[i].molotov_cocktails);
+else if(n==4) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"coins",random(5,25)+enemies[i].coins);
+else if(n==5) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"sandbag",1+enemies[i].sandbags);
+else if(n==6) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"enemy_grabber",1+enemies[i].enemy_grabbers);
+else if(n==7) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"enemy_caller",1+enemies[i].enemy_callers);
+if(enemies[i].timebombs>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"timebomb",enemies[i].timebombs);
+if(enemies[i].mines>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"mine",enemies[i].mines);
+if(enemies[i].molotov_cocktails>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"molotov_cocktail",enemies[i].molotov_cocktails);
+if(enemies[i].grenades>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"grenade",enemies[i].grenades);
+if(enemies[i].turrets>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"turret",enemies[i].turrets);
+if(enemies[i].item_grabbers>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"item_grabber",enemies[i].item_grabbers);
+if(enemies[i].coins>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"coins",enemies[i].coins);
+if(enemies[i].sandbags>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"sandbag",enemies[i].sandbags);
+if(enemies[i].enemy_grabbers>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"enemy_grabber",enemies[i].enemy_grabbers);
+if(enemies[i].enemy_callers>=1) spawn_obj(enemies[i].x,enemies[i].y,enemies[i].z,"enemy_caller",enemies[i].enemy_callers);
+}
+@enemies[i]=null;
+enemies.remove_at(i);
+break;
+}
+if(enemies[i].burned and enemies[i].dead==false)
+{
+if(enemies[i].burnsound==false)
+{
+enemies[i].burnloop.load_looped("fire"+random(1,7));
+enemies[i].burnloop.play();
+enemies[i].burnsound=true;
+}
+if(enemies[i].burntimer.elapsed>random(400,530))
+{
+enemies[i].burntimer.restart();
+int t=enemies[i].type-6;
+p.play_3d("enemy"+t+"pain"+random(1,3),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].health-=random(1,10);
+enemies[i].burn++;
+}
+if(enemies[i].burn==random(25,35))
+{
+enemies[i].burnloop.close();
+enemies[i].burnsound=false;
+enemies[i].burned=false;
+}
+}
+if(enemies[i].itemgrabber and enemies[i].dead==false)
+{
+enemies[i].can_move=false;
+if(enemies[i].item_grabbersound==false)
+{
+p.play_3d("item_grabberstart",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(enemies[i].item_grabbertimer.elapsed>930)
+{
+enemies[i].item_grabbertimer.restart();
+enemies[i].item_grabberloop.load_looped("item_grabber");
+enemies[i].item_grabberloop.play();
+enemies[i].item_grabbersound=true;
+}
+}
+if(enemies[i].item_grabbertimer.elapsed>1280)
+{
+enemies[i].item_grabbertimer.restart();
+enemies[i].item_grabber++;
+}
+if(enemies[i].item_grabber==random(15,35))
+{
+for (uint i2=0; i2<objs.length(); i2++)
+{
+objs[i2].x=enemies[i].x;
+objs[i2].y=enemies[i].y;
+objs[i2].z=enemies[i].z;
+if(get_3d_distance(enemies[i].x, enemies[i].y, enemies[i].z, objs[i2].x, objs[i2].y, objs[i2].z)<=5 and enemies[i].dead==false)
+{
+objs[i2].etake(i);
+@objs[i2]=null;
+objs.remove_at(i2);
+break;
+}
+}
+enemies[i].item_grabberloop.close();
+enemies[i].item_grabbersound=false;
+p.play_3d("item_grabberstop",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].itemgrabber=false;
+enemies[i].item_grabbers--;
+enemies[i].can_move=true;
+enemies[i].weapon=random(0,67);
+}
+}
+if(enemies[i].enemygrabber and enemies[i].dead==false)
+{
+enemies[i].can_move=false;
+if(enemies[i].enemy_grabbersound==false)
+{
+p.play_3d("item_grabberstart",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(enemies[i].enemy_grabbertimer.elapsed>930)
+{
+enemies[i].enemy_grabbertimer.restart();
+enemies[i].enemy_grabberloop.load_looped("item_grabber");
+enemies[i].enemy_grabberloop.play();
+enemies[i].enemy_grabbersound=true;
+}
+}
+if(enemies[i].enemy_grabbertimer.elapsed>1280)
+{
+enemies[i].enemy_grabbertimer.restart();
+enemies[i].enemy_grabber++;
+}
+if(enemies[i].enemy_grabber==random(15,35))
+{
+for (uint i2=0; i2<objs.length(); i2++)
+{
+objs[i2].x=enemies[i].x;
+objs[i2].y=enemies[i].y;
+objs[i2].z=enemies[i].z;
+if(get_3d_distance(enemies[i].x, enemies[i].y, enemies[i].z, objs[i2].x, objs[i2].y, objs[i2].z)<=5 and enemies[i].dead==false)
+{
+objs[i2].etake(i);
+@objs[i2]=null;
+objs.remove_at(i2);
+break;
+}
+}
+enemies[i].enemy_grabberloop.close();
+enemies[i].enemy_grabbersound=false;
+p.play_3d("item_grabberstop",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].enemygrabber=false;
+enemies[i].enemy_grabbers--;
+enemies[i].can_move=true;
+enemies[i].weapon=random(0,67);
+}
+}
+if(enemies[i].x<min.x)
+{
+enemies[i].x=min.x;
+enemies[i].facing=random(0,359);
+}
+if(enemies[i].x>max.x)
+{
+enemies[i].x=max.x;
+enemies[i].facing=random(0,359);
+}
+if(enemies[i].y<min.y)
+{
+enemies[i].y=min.y;
+enemies[i].facing=random(0,359);
+}
+if(enemies[i].y>max.y)
+{
+enemies[i].y=max.y;
+enemies[i].facing=random(0,359);
+}
+if(enemies[i].z<min.z)
+{
+enemies[i].z=min.z;
+}
+if(enemies[i].z>max.z)
+{
+enemies[i].z=max.z;
+}
+if(enemies[i].can_move)
+{
+if((enemies[i].type==5 or enemies[i].type==6) and enemies[i].ride!="")
+{
+if(enemies[i].movetimer.elapsed>=enemies[i].movetime and enemies[i].dead==false)
+{
+enemies[i].movetimer.restart();
+vector vmove=move(enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing,0,0.0,0);
+enemies[i].x=round(vmove.x,0);
+enemies[i].y=round(vmove.y,0);
+enemies[i].z=round(vmove.z,0);
+vmove=null;
+if(enemies[i].ride=="me")
+{
+me.x=enemies[i].x;
+me.y=enemies[i].y;
+me.z=enemies[i].z;
+}
+if(enemies[i].dirtimer.elapsed>enemies[i].dirtime)
+{
+enemies[i].dirtimer.restart();
+enemies[i].facing=random(0,359);
+}
+}
+}
+else
+{
+if(enemies[i].x>enemies[i].dx and enemies[i].movetimer.elapsed>=enemies[i].movetime and enemies[i].dead==false)
+{
+enemies[i].movetimer.restart();
+if(string_contains(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), "wall", 1)>-1)
+{
+if(enemies[i].type>6) p.play_3d(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else
+{
+enemies[i].x-=1;
+if(enemies[i].type>6) p.play_3d(get_tile_at2(enemies[i].x,enemies[i].y,enemies[i].z)+"step"+random(1,5),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+}
+}
+if(enemies[i].x<enemies[i].dx and enemies[i].movetimer.elapsed>=enemies[i].movetime and enemies[i].dead==false)
+{
+enemies[i].movetimer.restart();
+if(string_contains(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), "wall", 1)>-1)
+{
+if(enemies[i].type>6) p.play_3d(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else
+{
+enemies[i].x+=1;
+if(enemies[i].type>6) p.play_3d(get_tile_at2(enemies[i].x,enemies[i].y,enemies[i].z)+"step"+random(1,5),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+}
+}
+if(enemies[i].y>enemies[i].dy and enemies[i].movetimer.elapsed>=enemies[i].movetime and enemies[i].dead==false)
+{
+enemies[i].movetimer.restart();
+if(string_contains(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), "wall", 1)>-1)
+{
+if(enemies[i].type>6) p.play_3d(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else
+{
+enemies[i].y-=1;
+if(enemies[i].type>6) p.play_3d(get_tile_at2(enemies[i].x,enemies[i].y,enemies[i].z)+"step"+random(1,5),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+}
+}
+if(enemies[i].y<enemies[i].dy and enemies[i].movetimer.elapsed>=enemies[i].movetime and enemies[i].dead==false)
+{
+enemies[i].movetimer.restart();
+if(string_contains(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), "wall", 1)>-1)
+{
+if(enemies[i].type>6) p.play_3d(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else
+{
+enemies[i].y+=1;
+if(enemies[i].type>6) p.play_3d(get_tile_at2(enemies[i].x,enemies[i].y,enemies[i].z)+"step"+random(1,5),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+}
+}
+if(enemies[i].z>enemies[i].dz and enemies[i].movetimer.elapsed>=enemies[i].movetime and enemies[i].dead==false)
+{
+enemies[i].movetimer.restart();
+if(string_contains(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), "wall", 1)>-1)
+{
+if(enemies[i].type>6) p.play_3d(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else
+{
+enemies[i].z-=1;
+if(enemies[i].type>6) p.play_3d(get_tile_at2(enemies[i].x,enemies[i].y,enemies[i].z)+"step"+random(1,5),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+}
+}
+if(enemies[i].z<enemies[i].dz and enemies[i].movetimer.elapsed>=enemies[i].movetime and enemies[i].dead==false)
+{
+enemies[i].movetimer.restart();
+if(string_contains(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), "wall", 1)>-1)
+{
+if(enemies[i].type>6) p.play_3d(get_tile_at(enemies[i].x, enemies[i].y, enemies[i].z), me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,enemies[i].facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else
+{
+enemies[i].z+=1;
+if(enemies[i].type>6) p.play_3d(get_tile_at2(enemies[i].x,enemies[i].y,enemies[i].z)+"step"+random(1,5),me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,tilevolume,tilepitch,tilespeed,false);
+}
+}
+}
+}
+}
+}
+void spawn_enemy(int type,int x, int y, int z, string invehicle="")
+{
+enemy e1(type,x,y,z,invehicle);
+enemies.insert_last(e1);
+}
+void destroy_all_enemies()
+{
+for (uint i=0; i<enemies.length(); i++)
+{
+enemies[i].burnloop.close();
+enemies[i].item_grabberloop.close();
+enemies[i].enemy_grabberloop.close();
+enemies[i].voice.close();
+}
+enemies.resize(0);
+}

@@ -1,0 +1,13 @@
+nickname main aria
+minx 0
+maxx 100
+miny 0
+maxy 100
+minz 0
+maxz 100
+tile 0 100 0 100 0 0 100 0 0 concrete4
+zone 0 100 0 100 0 100 main area
+src 0 100 0 100 0 100 100 0 0 waterloop
+background_music 1
+store 1
+travelpoint 5 5 5 5 0 0 main 5 5 0 go

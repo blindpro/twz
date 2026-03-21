@@ -1,0 +1,242 @@
+string biketile;
+class bicycle
+{
+double x,y,z;
+bool crashed=false;
+void move_bicycle(string direction)
+{
+this.x=me.x;
+this.y=me.y;
+this.z=me.z;
+if(direction==Forward and this.y+5<=max.y)
+{
+if(string_contains(get_tile_at(this.x,this.y+5,this.z),"wall",1)>-1 or get_tile_at(this.x,this.y+5,this.z)=="")
+{
+p.play_stationary("bikecrash",0,100,0,0,false);
+gameinv.give("bicycle",-1);
+inbicycle=false;
+can_move=true;
+crashed=true;
+}
+for(uint i=0; i<5; i++)
+{
+if(string_contains(get_tile_at(this.x,this.y+i,this.z),"wall",1)>-1)
+{
+p.play_stationary("bikecrash",0,100,0,0,false);
+gameinv.give("bicycle",-1);
+crashed=true;
+inbicycle=false;
+can_move=true;
+break;
+}
+}
+if(crashed==false and this.y<max.y)
+{
+this.y+=5;
+if(this.y>max.y)
+this.y=max.y;
+}
+me.x=this.x;
+me.y=this.y;
+string oldbiketile=biketile;
+biketile=identify_biketile(get_tile_at(this.x,this.y,this.z));
+p.play_stationary("bike"+biketile+"",0,100,0,0,false);
+if(oldbiketile!=biketile)
+{
+p.play_stationary("bikechangetile",0,100,0,0,false);
+}
+check_radar(direction);
+}
+else if(direction==Backward and this.y-5>=min.y)
+{
+if(string_contains(get_tile_at(this.x,this.y-5,this.z),"wall",1)>-1 or get_tile_at(this.x,this.x-5,this.z)=="")
+{
+p.play_stationary("bikecrash",0,100,0,0,false);
+gameinv.give("bicycle",-1);
+inbicycle=false;
+can_move=true;
+crashed=true;
+}
+for(uint i=0; i<5; i++)
+{
+if(string_contains(get_tile_at(this.x,this.x-i,this.z),"wall",1)>-1)
+{
+p.play_stationary("bikecrash",0,100,0,0,false);
+gameinv.give("bicycle",-1);
+inbicycle=false;
+can_move=true;
+crashed=true;
+break;
+}
+}
+if(crashed==false and this.y>min.y)
+{
+this.y-=5;
+if(this.y<min.y)
+this.y=min.y;
+}
+me.x=this.x;
+me.y=this.y;
+string oldbiketile=biketile;
+biketile=identify_biketile(get_tile_at(this.x,this.y,this.z));
+p.play_stationary("bike"+biketile+"",0,100,0,0,false);
+if(oldbiketile!=biketile)
+{
+p.play_stationary("bikechangetile",0,100,0,0,false);
+}
+check_radar(direction);
+}
+else if(direction==Left and this.x-5>=min.x)
+{
+if(string_contains(get_tile_at(this.x-5,this.y,this.z),"wall",1)>-1 or get_tile_at(this.x-5,this.y,this.z)=="")
+{
+p.play_stationary("bikecrash",0,100,0,0,false);
+gameinv.give("bicycle",-1);
+inbicycle=false;
+can_move=true;
+crashed=true;
+}
+for(uint i=0; i<5; i++)
+{
+if(string_contains(get_tile_at(this.x-i,this.y,this.z),"wall",1)>-1)
+{
+p.play_stationary("bikecrash",0,100,0,0,false);
+gameinv.give("bicycle",-1);
+inbicycle=false;
+can_move=true;
+crashed=true;
+break;
+}
+}
+if(crashed==false and this.x>min.x)
+{
+this.x-=5;
+if(this.x<min.x)
+this.x=min.x;
+}
+me.x=this.x;
+me.y=this.x;
+string oldbiketile=biketile;
+biketile=identify_biketile(get_tile_at(this.x,this.y,this.z));
+p.play_stationary("bike"+biketile+"",0,100,0,0,false);
+if(oldbiketile!=biketile)
+{
+p.play_stationary("bikechangetile",0,100,0,0,false);
+}
+check_radar(direction);
+}
+else if(direction==Right and this.x+5<=max.x)
+{
+if(string_contains(get_tile_at(this.x+5,this.y,this.z),"wall",1)>-1 or get_tile_at(this.x+5,this.y,this.z)=="")
+{
+p.play_stationary("bikecrash",0,100,0,0,false);
+gameinv.give("bicycle",-1);
+inbicycle=false;
+can_move=true;
+crashed=true;
+}
+for(uint i=0; i<5; i++)
+{
+if(string_contains(get_tile_at(this.x+i,this.y,this.z),"wall",1)>-1)
+{
+p.play_stationary("bikecrash",0,100,0,0,false);
+gameinv.give("bicycle",-1);
+crashed=true;
+inbicycle=false;
+can_move=true;
+break;
+}
+}
+if(crashed==false and this.x<max.x)
+{
+this.x+=5;
+if(this.x>max.x)
+this.x=max.x;
+}
+me.x=this.x;
+me.y=this.x;
+string oldbiketile=biketile;
+biketile=identify_biketile(get_tile_at(this.x,this.y,this.z));
+p.play_stationary("bike"+biketile+"",0,100,0,0,false);
+if(oldbiketile!=biketile)
+{
+p.play_stationary("bikechangetile",0,100,0,0,false);
+}
+check_radar(direction);
+}
+}
+string identify_biketile(string tilename)
+{
+if(string_contains(tilename,"dirt",1)>-1 or string_contains(tilename,"sand",1)>-1)
+{
+return "dirt";
+}
+else if(string_contains(tilename,"fence",1)>-1)
+{
+return "fence";
+}
+else if(string_contains(tilename,"grass",1)>-1 or string_contains(tilename,"lawn",1)>-1)
+{
+return "grass";
+}
+else if(string_contains(tilename,"grate",1)>-1)
+{
+return "grate";
+}
+else if(string_contains(tilename,"gravel",1)>-1)
+{
+return "gravel";
+}
+else if(string_contains(tilename,"metal",1)>-1)
+{
+return "medal";
+}
+else if(string_contains(tilename,"mud",1)>-1)
+{
+return "mud";
+}
+else if(string_contains(tilename,"rock",1)>-1)
+{
+return "rock";
+}
+else if(string_contains(tilename,"water",1)>-1)
+{
+return "water";
+}
+else if(string_contains(tilename,"weed",1)>-1)
+{
+return "weed";
+}
+else if(string_contains(tilename,"wood",1)>-1)
+{
+return "wood";
+}
+else return "misc";
+}
+void check_radar(string dir)
+{
+for(uint i=0; i<25; i++)
+{
+if((string_contains(get_tile_at(this.x,this.y+i,this.z),"wall",1)>-1 or get_tile_at(this.x,this.y+i,this.z)=="") and dir==Forward)
+{
+p.play_stationary("bikeradar",0,100,0,0,false);
+break;
+}
+if((string_contains(get_tile_at(this.x,this.y-i,this.z),"wall",1)>-1 or get_tile_at(this.x,this.y-i,this.z)=="") and dir==Backward)
+{
+p.play_stationary("bikeradar",0,100,0,0,false);
+break;
+}
+if((string_contains(get_tile_at(this.x-i,this.y,this.z),"wall",1)>-1 or get_tile_at(this.x-i,this.y,this.z)=="") and dir==Left)
+{
+p.play_stationary("bikeradar",0,100,0,0,false);
+break;
+}
+if((string_contains(get_tile_at(this.x+i,this.y,this.z),"wall",1)>-1 or get_tile_at(this.x+i,this.y,this.z)=="") and dir==Right)
+{
+p.play_stationary("bikeradar",0,100,0,0,false);
+break;
+}
+}
+}
+}

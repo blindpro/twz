@@ -1,0 +1,177 @@
+string[] itemnames={"health_pill","speed_drink","shield","timebomb","mine","molotov_cocktail","turret","turret_battery","turret_cartridge","item_grabber","sandbag","vehicle_kit","enemy_grabber","enemy_caller","magnetic_shoes"};
+string[] ammotypes={"5.45mm_ammo_pack","5.56mm_ammo_pack","7.62mm_ammo_pack","9mm_ammo_pack","12.7mm_ammo_pack","shotgun_shell_pack","battery_pack","paintball_pack","grenade","rocket","missile","rpg","cannon_ball"};
+obj@[] objs(0);
+class obj
+{
+int number;
+int x, y, z;
+int objsound;
+string name;
+int amount;
+string sound;
+timer objsoundplaytimer;
+bool breakable=true;
+int objsoundplaytime;
+obj(int objx, int objy, int objz, string objname="", int objamount=-1)
+{
+x=objx;
+y=objy;
+z=objz;
+name=objname;
+amount=objamount;
+if(name=="coins")
+{
+sound="objcoins"+random(1,2);
+objsoundplaytime=525;
+breakable=false;
+}
+else
+{
+sound="item";
+objsoundplaytime=600;
+breakable=true;
+}
+}
+void take()
+{
+p.play_stationary("itemget",0,100,0,0,false);
+number=random(0,1);
+if(name!="")
+{
+for(uint i=0; i<weapons.length(); i++)
+{
+if(name==weapons[i].name)
+{
+p.play_stationary(name+"draw",0,100,0,0,false);
+}
+}
+p.play_stationary("get"+get_draw_and_get_sound(name),0,100,0,0,false);
+gameinv.give(name,amount);
+add_buffer_item("items",amount+" "+name);
+}
+else
+{
+if (number==0)
+{
+int n=random(0,itemnames.length()-1);
+p.play_stationary("get"+get_draw_and_get_sound(itemnames[n]),0,100,0,0,false);
+gameinv.give(itemnames[n],1);
+add_buffer_item("items","1 "+itemnames[n]);
+}
+else if (number==1)
+{
+int n=random(0,ammotypes.length()-1);
+int nn;
+nn=random(1,5);
+p.play_stationary("get"+get_draw_and_get_sound(ammotypes[n]),0,100,0,0,false);
+gameinv.give(ammotypes[n],nn);
+add_buffer_item("items",nn+" "+ammotypes[n]);
+}
+}
+}
+void etake(int i)
+{
+if(enemies[i].type<7)
+{
+p.play_3d("obj_break"+random(1,6), me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else
+{
+number=random(0,8);
+p.play_3d("itemget", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(name=="coins")
+{
+p.play_3d("getcoins", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].coins+=amount;
+}
+else
+{
+if (number==0)
+{
+p.play_3d("gethealth", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].health+=random(100,1000);
+}
+else if (number==1)
+{
+p.play_3d("getspeed", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].movetime-=random(5,15);
+}
+else if (number==2)
+{
+p.play_3d("getcartridge", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].cartridges+=1;
+}
+else if (number==3)
+{
+p.play_3d("getcartridge", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].cartridges+=random(5,15);
+}
+else if (number==4)
+{
+if(enemies[i].shielded==0)
+{
+p.play_3d("getshield", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+p.play_3d("shieldwield",me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].shielded=1;
+}
+p.play_3d("getshield2", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].shieldshots+=random(1,10);
+}
+else if (number==5)
+{
+p.play_3d("gettimebomb", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].timebombs+=random(1,5);
+}
+else if (number==6)
+{
+p.play_3d("getmine", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].mines+=random(1,5);
+}
+else if (number==7)
+{
+p.play_3d("getmolotov_cocktail", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].molotov_cocktails+=random(1,5);
+}
+else if (number==8)
+{
+p.play_3d("getgrenade", me.x,me.y,me.z,enemies[i].x,enemies[i].y,enemies[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i].grenades+=random(1,5);
+}
+}
+}
+}
+}
+void icheckloop()
+{
+for (uint i=0; i<objs.length(); i++)
+{
+if (objs[i].objsoundplaytimer.elapsed>=objs[i].objsoundplaytime)
+{
+objs[i].objsoundplaytimer.restart();
+p.play_3d(objs[i].sound, me.x, me.y, me.z, objs[i].x, objs[i].y, objs[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+while (get_tile_at(objs[i].x,objs[i].y,objs[i].z)=="")
+{
+objs[i].z-=1;
+}
+for (uint i2=0; i2<enemies.length(); i2++)
+{
+if(get_3d_distance(enemies[i2].x, enemies[i2].y, enemies[i2].z, objs[i].x, objs[i].y, objs[i].z)<=5 and enemies[i2].dead==false)
+{
+objs[i].etake(i2);
+@objs[i]=null;
+objs.remove_at(i);
+break;
+}
+}
+}
+}
+void spawn_obj(int objx, int objy, int objz, string objname="", int objamount=-1)
+{
+obj obj1(objx,objy,objz,objname,objamount);
+objs.insert_last(obj1);
+}
+void destroy_all_objs()
+{
+objs.resize(0);
+}

@@ -1,0 +1,711 @@
+inventory inv;
+class inventory
+{
+inventory_item@[]items(0);
+//constructor.
+double invpos=-1;
+inventory()
+{
+reset();
+}
+double get_item_index(string a)
+{
+for(double i=0; i<this.items.length(); i++)
+{
+if(this.items[i].name==a) return i;
+}
+return -1;
+}
+double search_inv(string search_term)
+{
+double result=-1;
+for(double i=0; i<this.items.length; i++)
+{
+if(string_contains(this.items[i].name, search_term, 1)>-1)
+{
+result=i;
+}
+}
+return result;
+}
+void cycle(double direction=1)
+{
+if(this.items.length()<=0) 
+{
+speak("No items");
+return;
+}
+double newpos=(direction==1?invpos+1:invpos-1);
+if(newpos<0) newpos=this.items.length()-1;
+if(newpos>=this.items.length()) newpos=0;
+invpos=newpos;
+speak(this.items[this.invpos].name+": "+this.items[this.invpos].amount+". "+(invpos+1)+" of "+this.items.length());
+}
+void cycle2(double direction=1)
+{
+if(this.items.length()<=0) 
+{
+speak("No items");
+return;
+}
+double newpos=(direction==1?invpos+1:invpos-1);
+if(newpos<0) newpos=this.items.length()-1;
+if(newpos>=this.items.length()) newpos=0;
+invpos=newpos;
+speak(this.items[this.invpos].name+". You have "+this.items[this.invpos].amount);
+}
+inventory_item@get_inv_item_handle(string a)
+{
+for(double i=0; i<this.items.length(); i++)
+{
+if(this.items[i].name==a) return this.items[i];
+}
+return null;
+}
+void reset()
+{
+//this will remove all items in the inventory.
+this.items.resize(0);
+}
+void import_from_serial(string serial, bool withinv=false)
+{
+reset();
+dictionary@dict=deserialize(serial);
+if(dict.get_size()==0) return;
+string[] k=dict.get_keys();
+for(double i=0; i<k.length; i++)
+{
+double temp;
+dict.get(k[i], temp);
+this.give(k[i], temp);
+}
+if(withinv)
+{
+kickfrominv=true;
+invmenu(true);
+kickfrominv=false;
+}
+}
+string export(string del="=", string del2="\r\n")
+{
+//This prints a human-friendly version of your inventory. It will return in ini format by default, but you can change this by changing the del and del2 strings to something else.
+if(this.items.length()<=0) //nothing here.
+return "";
+string output;
+for(double i=0; i<this.items.length(); i++)
+{
+output+=items[i].name+del+items[i].amount+del2;
+}
+return output;
+}
+void give(string what, double amount)
+{
+inventory_item@temp=get_inv_item_handle(what);
+if(@temp==null)
+{
+@temp=inventory_item(what, amount);
+this.items.insert_last(temp);
+if(temp.amount<=0){
+this.items.remove_at(this.get_item_index(temp.name));
+}
+}
+else
+{
+temp.amount+=amount;
+if(temp.amount<=0)
+this.items.remove_at(this.get_item_index(temp.name));
+}
+}
+double get_item_amount(string a)
+{
+for(double i=0; i<items.length(); i++)
+{
+if(items[i].name==a) return items[i].amount;
+}
+return 0;
+}
+}
+//end of inventory class.
+class inventory_item
+{
+string name;
+double amount;
+bool usable=true,droppable=true;
+inventory_item(string a, double b,bool c=true,bool d=true)
+{
+this.name=a;
+this.amount=b;
+usable=c;
+droppable=d;
+}
+}
+string get_item_category(string i)
+{
+string[] list;
+for(double e=0; e<list.length(); e++)
+{
+string[]finder=string_split(list[e],"=",false);
+if(finder[0]==i and finder.length()>1) return finder[1];
+}
+return "Misc/Unsorted";
+}
+inv_menu_system invms;
+void invmenu(bool dontloadmenu=false)
+{
+if(gameinv.items.length()<=0)
+{
+speak("No items");
+return;
+}
+invms.reset();
+double randinv=random(1,8);
+invms.open_sound="invopen"+randinv;
+inventorysound=randinv;
+invms.add_inv_menu("inventory");
+for(double i=0; i<gameinv.items.length(); i++)
+{
+invms.add_inv_menu_item("inventory",gameinv.items[i].name+": You have "+gameinv.items[i].amount);
+}
+string result;
+if(dontloadmenu) result=invms.run("inventory",true);
+else result=invms.run("inventory");
+}
+class inv_menu_system
+{
+inv_menu@[]invs;
+int invcounter=0;
+bool say_inv_menu=true;
+bool letters_autospeak=true;
+bool enable_first_letter_navigation=true;
+bool enable_multi_letter_navigation=true;
+bool repeat_items_at_edges=true;
+timer multinav_timer;
+bool speak_position_information=true;
+bool position;
+string open_sound;
+inv_menu_system()
+{
+this.say_inv_menu=true;
+}
+void reset()
+{
+invs.resize(0);
+}
+int get_inv_index(string invname)
+{
+for(uint i=0; i<invs.length(); i++)
+{
+if(invs[i].title==invname) return i;
+}
+return -1;
+}
+void add_inv_menu(string menuname)
+{
+if(get_inv_index(menuname)>-1) return;
+inv_menu temp(menuname);
+invs.insert_last(temp);
+}
+void add_inv_menu_item(string invname,string itemname)
+{
+int s=get_inv_index(invname);
+if(s<=-1) return;
+invs[s].items.insert_last(itemname);
+}
+string run(string title, bool dontloadmenu=false)
+{
+reset_all_forced_keys();
+get_characters();
+string cl;
+double counter=0;
+if(dontloadmenu==false)
+{
+p.play_stationary(open_sound,0,100,0,0,false);
+if(title!="") speak(title);
+}
+invs[invcounter].itmcount=invposition;
+while(true)
+{
+wait(5);
+mainloop();
+if(kickfrominv)
+{
+break;
+}
+if(enable_first_letter_navigation==true or enable_multi_letter_navigation==true) cl=get_characters();
+if(key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and cl!="" and cl!="," and cl!="." and cl!="[" and cl!="]" and cl!="/" and cl!="\\" and cl!="=" and cl!=" ")
+{
+int f=0;
+int oc=invs[invcounter].itmcount;
+for(uint i=invs[invcounter].itmcount; i<invs[invcounter].items.length(); i++)
+{
+if(i==invs[invcounter].itmcount)
+{
+invposition=invs[invcounter].itmcount;
+continue;
+}
+if(invs[invcounter].items[i][0]==cl)
+{
+invs[invcounter].itmcount=i;
+invposition=invs[invcounter].itmcount;
+speak(invs[invcounter].items[invs[invcounter].itmcount]);
+cl="";
+f=1;
+break;
+}
+}
+if(f==0)
+{
+invs[invcounter].itmcount=0;
+for(uint i=invs[invcounter].itmcount; i<invs[invcounter].items.length(); i++)
+{
+if(invs[invcounter].items[i][0]==cl)
+{
+invs[invcounter].itmcount=i;
+invposition=invs[invcounter].itmcount;
+speak(invs[invcounter].items[invs[invcounter].itmcount]);
+cl="";
+f=1;
+break;
+}
+}
+}
+}
+if(key_up(KEY_LMENU) and key_up(KEY_RMENU) and key_pressed(KEY_DOWN)==false and down.pressing())
+{
+if(gameinv.items.length()<=0)
+{
+speak("no items");
+}
+else
+{
+if(invs[invcounter].itmcount>=invs[invcounter].items.length()-1)
+{
+invs[invcounter].itmcount=invs[invcounter].items.length()-1;
+}
+else
+{
+invs[invcounter].itmcount++;
+}
+invposition=invs[invcounter].itmcount;
+speak(invs[invcounter].items[invs[invcounter].itmcount]);
+}
+}
+if(key_up(KEY_LMENU) and key_up(KEY_RMENU) and key_pressed(KEY_UP)==false and up.pressing())
+{
+if(gameinv.items.length()<=0)
+{
+speak("no items");
+}
+else
+{
+if(invs[invcounter].itmcount<=0)
+{
+invs[invcounter].itmcount=0;
+}
+else
+{
+invs[invcounter].itmcount--;
+}
+invposition=invs[invcounter].itmcount;
+speak(invs[invcounter].items[invs[invcounter].itmcount]);
+}
+}
+if(key_pressed(KEY_HOME))
+{
+if(gameinv.items.length()<=0)
+{
+speak("no items");
+}
+else
+{
+invs[invcounter].itmcount=0;
+invposition=invs[invcounter].itmcount;
+speak(invs[invcounter].items[invs[invcounter].itmcount]);
+}
+}
+if(key_pressed(KEY_END))
+{
+if(gameinv.items.length()<=0)
+{
+speak("no items");
+}
+else
+{
+invs[invcounter].itmcount=invs[invcounter].items.length()-1;
+invposition=invs[invcounter].itmcount;
+speak(invs[invcounter].items[invs[invcounter].itmcount]);
+}
+}
+if(key_pressed(KEY_RETURN))
+{
+if(gameinv.items.length()<=0)
+{
+speak("no items");
+}
+else
+{
+string[] parsed=string_split(invs[invcounter].items[invs[invcounter].itmcount],":",true);
+useitem(parsed[0]);
+p.play_stationary("invclose"+inventorysound,0,100,0,0,false);
+break;
+}
+}
+if(key_pressed(KEY_F12))
+{
+beep(1025);
+copy_buffer_item();
+}
+if(key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and key_pressed(KEY_COMMA)==false and kcomma.pressing())
+{
+prevbufferitem();
+}
+if(key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and key_pressed(KEY_PERIOD)==false and kperiod.pressing())
+{
+nextbufferitem();
+}
+if(key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and key_pressed(KEY_LBRACKET)==false and klbracket.pressing())
+{
+bufferleft();
+}
+if(key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and key_pressed(KEY_RBRACKET)==false and krbracket.pressing())
+{
+bufferright();
+}
+if((key_down(KEY_LSHIFT) or key_down(KEY_RSHIFT)) and key_pressed(KEY_COMMA))
+{
+topbufferitem();
+}
+if((key_down(KEY_LSHIFT) or key_down(KEY_RSHIFT) ) and key_pressed(KEY_PERIOD))
+{
+bottombufferitem();
+}
+if((key_down(KEY_LSHIFT) or key_down(KEY_RSHIFT) ) and key_pressed(KEY_LBRACKET))
+{
+firstbuffer();
+}
+if((key_down(KEY_LSHIFT) or key_down(KEY_RSHIFT) ) and key_pressed(KEY_RBRACKET))
+{
+lastbuffer();
+}
+if((key_down(KEY_LSHIFT) or key_down(KEY_RSHIFT) ) and key_pressed(KEY_S))
+{
+if(gameinv.items.length()<=0)
+{
+speak("no items");
+}
+else
+{
+string stext=input_box("","Type the  item  name");
+if(stext=="")
+{
+speak("ok");
+}
+else
+{
+double search=gameinv.search_inv(stext);
+if(search==-1)
+{
+speak("No items found matching your search keywords");
+}
+else
+{
+invs[invcounter].itmcount=search;
+speak(invs[invcounter].items[invs[invcounter].itmcount]);
+invposition=invs[invcounter].itmcount;
+}
+}
+}
+}
+if(key_pressed(KEY_ESCAPE))
+{
+p.play_stationary("invclose"+inventorysound,0,100,0,0,false);
+break;
+}
+}
+return "";
+}
+}
+class inv_menu
+{
+string title;
+string[]items;
+int itmcount;
+inv_menu(string ttl)
+{
+title=ttl;
+}
+}
+void useitem(string itemname)
+{
+for(uint i=0; i<weapons.length(); i++)
+{
+if(weapons[i].name==itemname)
+{
+if(i>1 and i<75 and w>=0 and weapons[w].reloading==false)
+{
+w=i;
+p.play_stationary(weapons[w].name+"draw",0,100,0,0,false);
+speak(weapons[w].name);
+}
+}
+}
+if(itemname=="health_pill")
+{
+p.play_stationary("gethealth",0,100,0,0,false);
+health+=random(100,1000);
+gameinv.give(itemname,-1);
+}
+else if(itemname=="speed_drink")
+{
+p.play_stationary("getspeed",0,100,0,0,false);
+walktime-=random(5,15);
+gameinv.give(itemname,-1);
+}
+else if(itemname=="shield")
+{
+gameinv.give(itemname,-1);
+if(shielded==false)
+{
+p.play_stationary("shieldwield",0,100,0,0,false);
+shielded=true;
+}
+else
+{
+p.play_stationary("getshield2",0,100,0,0,false);
+}
+shieldshots+=random(1,10);
+}
+else if(itemname=="timebomb")
+{
+spawn_timebomb(me.x,me.y,me.z,"me");
+gameinv.give(itemname,-1);
+}
+else if(itemname=="mine")
+{
+if(facing==Left) spawn_mine(me.x-2,me.y,me.z,"me");
+else if(facing==Right) spawn_mine(me.x+2,me.y,me.z,"me");
+else if(facing==Backward) spawn_mine(me.x,me.y-2,me.z,"me");
+else if(facing==Forward) spawn_mine(me.x,me.y+2,me.z,"me");
+else
+{
+int where=random(1,4);
+if(where==1) spawn_mine(me.x-random(2,2),me.y,me.z,"me");
+else if(where==2) spawn_mine(me.x+random(2,2),me.y,me.z,"me");
+else if(where==3) spawn_mine(me.x,me.y-random(2,2),me.z,"me");
+else if(where==4) spawn_mine(me.x,me.y+random(2,2),me.z,"me");
+}
+gameinv.give(itemname,-1);
+}
+else if(itemname=="molotov_cocktail")
+{
+spawn_bullet(weapons[75].damage,weapons[75].range,me.x,me.y,me.z,facing,weapons[75].speed,"me",75);
+gameinv.give(itemname,-1);
+}
+else if(string_right(itemname,5)=="_pack")
+{
+p.play_stationary("ammo_box",0,100,0,0,false);
+int rand=random(5,50);
+gameinv.give(string_trim_right(itemname,5),rand);
+add_buffer_item("misc",rand+" "+string_trim_right(itemname,5));
+gameinv.give(itemname,-1);
+}
+else if(itemname=="turret")
+{
+can_move=false;
+p.play_stationary("turretplace",0,100,0,0,false);
+turrettimer.restart();
+turretplacing=true;
+}
+else if(itemname=="turret_cartridge")
+{
+for(uint i=0; i<turrets.length(); i++)
+{
+if(me.x==turrets[i].x and me.y==turrets[i].y and me.z==turrets[i].z)
+{
+if(turrets[i].clipsize>=1)
+{
+add_buffer_item("misc","this turret is already loaded");
+}
+else
+{
+p.play_3d("turretreload",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+turrets[i].clipsize+=100;
+gameinv.give(itemname,-1);
+}
+}
+}
+}
+else if(itemname=="turret_battery")
+{
+for(uint i=0; i<turrets.length(); i++)
+{
+if(me.x==turrets[i].x and me.y==turrets[i].y and me.z==turrets[i].z)
+{
+if(turrets[i].chargelevel>=500)
+{
+add_buffer_item("misc","this turret is fully charged");
+}
+else
+{
+p.play_3d("turretbattery",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+turrets[i].chargelevel+=30;
+gameinv.give(itemname,-1);
+}
+}
+}
+}
+else if(itemname=="item_grabber")
+{
+if(item_grabbersound==false)
+{
+p.play_stationary("item_grabberstart",0,100,0,0,false);
+can_move=false;
+item_grabberstarttimer.restart();
+item_grabbertimer.restart();
+item_grabbersound=true;
+}
+}
+else if(itemname=="blade")
+{
+if(facing==Left) spawn_blade(me.x-2,me.y,me.z,random(200,800),random(10,500),"bladeloop1","bladehit1");
+else if(facing==Right) spawn_blade(me.x+2,me.y,me.z,random(200,800),random(10,500),"bladeloop1","bladehit1");
+else if(facing==Backward) spawn_blade(me.x,me.y-2,me.z,random(200,800),random(10,500),"bladeloop1","bladehit1");
+else if(facing==Forward) spawn_blade(me.x,me.y+2,me.z,random(200,800),random(10,500),"bladeloop1","bladehit1");
+else
+{
+int where=random(1,4);
+if(where==1) spawn_blade(me.x-random(2,2),me.y,me.z,random(200,800),random(10,500),"bladeloop1","bladehit1");
+else if(where==2) spawn_blade(me.x+random(2,2),me.y,me.z,random(200,800),random(10,500),"bladeloop1","bladehit1");
+else if(where==3) spawn_blade(me.x,me.y-random(2,2),me.z,random(200,800),random(10,500),"bladeloop1","bladehit1");
+else if(where==4) spawn_blade(me.x,me.y+random(2,2),me.z,random(200,800),random(10,500),"bladeloop1","bladehit1");
+}
+gameinv.give(itemname,-1);
+}
+else if(itemname=="fire_extinguisher")
+{
+p.play_stationary("fire_extinguisher",0,100,0,0,false);
+if(burned)
+{
+burnloop.close();
+burnsound=false;
+burned=false;
+}
+for(uint i=0; i<enemies.length(); i++)
+{
+if(get_3d_distance(me.x, me.y, me.z, enemies[i].x, enemies[i].y, enemies[i].z)<=5)
+{
+if(enemies[i].burned)
+{
+//p.destroy_sound(enemies[i].burnloop);
+enemies[i].burnloop.close();
+enemies[i].burnsound=false;
+enemies[i].burned=false;
+}
+}
+}
+for(uint i=0; i<turrets.length(); i++)
+{
+if(get_3d_distance(me.x, me.y, me.z, turrets[i].x, turrets[i].y, turrets[i].z)<=5)
+{
+if(turrets[i].burned)
+{
+turrets[i].burnloop.close();
+turrets[i].burnsound=false;
+turrets[i].burned=false;
+}
+}
+}
+gameinv.give(itemname,-1);
+}
+else if(itemname=="bicycle")
+{
+p.play_stationary("bikeon",0,100,0,0,false);
+inbicycle=true;
+can_move=false;
+}
+else if(itemname=="sky_racer" or itemname=="aircraft")
+{
+automobile.type=itemname;
+automobile.fuel=random(20,100);
+automobile.speed=random(20,200);
+p.play_stationary(automobile.type+"_spawn",0,100,0,0,false);
+pause_all_sources();
+itsaircraft=true;
+invehicle=true;
+can_move=false;
+}
+else if(itemname=="ford" or itemname=="sorento" or itemname=="dogan_slx" or itemname=="grayhound_bus" or itemname=="m60_tank" or itemname=="tank" or itemname=="truck" or itemname=="4_by_4_jeep" or itemname=="dodge_charger" or itemname=="doom_buggy" or itemname=="ford_pickup_truck" or itemname=="mlk_mission_cruiser" or itemname=="muscle_car")
+{
+automobile.type=itemname;
+automobile.fuel=random(20,100);
+automobile.speed=random(20,200);
+p.play_stationary(automobile.type+"_spawn",0,100,0,0,false);
+pause_all_sources();
+automobile.window=false;
+itscar=true;
+invehicle=true;
+can_move=false;
+}
+else if(itemname=="generic_motorcycle" or itemname=="frog_motorcycle" or itemname=="ducati_street_fighter" or itemname=="onda_cbr_600" or itemname=="yamaha_r6" or itemname=="aprilia_v4" or itemname=="aprilia_rs660" or itemname=="ducati_diavel" or itemname=="yamaha_off_road" or itemname=="kawasaki_hipersport" or itemname=="kawasaki_adventure_tourer" or itemname=="ducati_scrumbler" or itemname=="bmw_off_road" or itemname=="motor_boat")
+{
+automobile.type=itemname;
+automobile.fuel=random(20,100);
+automobile.speed=random(20,200);
+p.play_stationary("generic_motorcycle_spawn",0,100,0,0,false);
+invehicle=true;
+can_move=false;
+}
+else if(itemname=="sandbag")
+{
+spawn_sandbag(me.x,me.y,me.z,"me");
+gameinv.give(itemname,-1);
+}
+else if(itemname=="vehicle_kit")
+{
+string[] vehiclenames={"bicycle","generic_motorcycle","frog_motorcycle","ducati_street_fighter","onda_cbr_600","yamaha_r6","aprilia_v4","aprilia_rs660","ducati_diavel","yamaha_off_road","kawasaki_hipersport","kawasaki_adventure_tourer","ducati_scrumbler","bmw_off_road","motor_boat","sky_racer","ford","sorento","dogan_slx","grayhound_bus","m60_tank","tank","truck","4_by_4_jeep","dodge_charger","doom_buggy","ford_pickup_truck","mlk_mission_cruiser","muscle_car","aircraft"};
+int n=random(0,vehiclenames.length()-1);
+gameinv.give(vehiclenames[n],1);
+p.play_stationary("openmedalbox",0,100,0,0,false);
+speak("1 "+vehiclenames[n]);
+gameinv.give(itemname,-1);
+}
+else if(itemname=="enemy_grabber")
+{
+if(enemy_grabbersound==false)
+{
+p.play_stationary("item_grabberstart",0,100,0,0,false);
+can_move=false;
+enemy_grabberstarttimer.restart();
+enemy_grabbertimer.restart();
+enemy_grabbersound=true;
+}
+}
+else if(itemname=="enemy_caller")
+{
+p.play_stationary("enemy_caller",0,100,0,0,false);
+for (uint i=0; i<enemies.length(); i++)
+{
+enemies[i].target=-1;
+enemies[i].dx=me.x;
+enemies[i].dy=me.y;
+enemies[i].dz=me.z;
+}
+gameinv.give(itemname,-1);
+}
+else if(itemname=="magnetic_shoes")
+{
+if(magnetic_shoes==false)
+{
+magnetic_shoes=true;
+p.play_stationary("shoeson",0,100,0,0,false);
+speak("you wore the shoes");
+}
+else
+{
+magnetic_shoes=false;
+p.play_stationary("shoesoff",0,100,0,0,false);
+speak("you removed the shoes");
+}
+}
+
+}

@@ -1,0 +1,120 @@
+mine@[] mines(0);
+class mine
+{
+int x, y, z;
+sound_object minesound;
+bool hit=false;
+string owner;
+mine(int mx, int my, int mz, string mowner)
+{
+x=mx;
+y=my;
+z=mz;
+owner=mowner;
+p.play_3d("minelight",me.x,me.y,me.z,x,y,z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+minesound.load_looped("mineloop");
+minesound.play();
+}
+}
+void mineloop()
+{
+for (uint i=0; i<mines.length(); i++)
+{
+position_sound_3d(mines[i].minesound, me.x, me.y, me.z, mines[i].x, mines[i].y, mines[i].z, facing, 10, 5, 5, 0, 100, 0);
+if(get_3d_distance(mines[i].x, mines[i].y, mines[i].z, me.x, me.y, me.z)<=1)
+{
+p.play_3d("mineboom",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("minedist",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+p.play_stationary("minehit",0,100,0,0,false);
+p.play_stationary("pain"+random(1,5),0,100,0,0,false);
+health-=random(100,1000);
+if(mines[i].hit==false) mines[i].hit=true;
+}
+for (uint i2=0; i2<objs.length(); i2++)
+{
+if(get_3d_distance(mines[i].x, mines[i].y, mines[i].z, objs[i2].x, objs[i2].y, objs[i2].z)<=1 and objs[i2].breakable==true)
+{
+p.play_3d("mineboom",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("minedist",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+p.play_3d("obj_break"+random(1,6),me.x,me.y,me.z,objs[i2].x,objs[i2].y,objs[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+objs.remove_at(i2);
+if(mines[i].hit==false) mines[i].hit=true;
+}
+}
+for (uint i2=0; i2<enemies.length(); i2++)
+{
+if(get_3d_distance(mines[i].x, mines[i].y, mines[i].z, enemies[i2].x, enemies[i2].y, enemies[i2].z)<=1 and enemies[i2].dead==false)
+{
+p.play_3d("mineboom",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("minedist",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(enemies[i2].type>6) p.play_3d("minehit",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(enemies[i2].type==1) p.play_3d("policehit"+random(1,7),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==2) p.play_3d("tankhit"+random(1,5),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==3) p.play_3d("aircrafthit"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==4) p.play_3d("helicopterhit"+random(1,2),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==5)
+{
+int n=random(1,2);
+if(n==1) p.play_3d("aircrafthit"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else p.play_3d("policehit"+random(1,5),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else if(enemies[i2].type==6) p.play_3d("bushit"+random(1,2),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else
+{
+int t=enemies[i2].type-6;
+p.play_3d("enemy"+t+"pain"+random(1,3),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+enemies[i2].health-=random(100,1000);
+enemies[i2].hitby=mines[i].owner;
+enemies[i2].hitby2=(mines[i].owner=="me"?"your mine":mines[i].owner+"'s mine");
+enemies[i2].hitbyweapon="";
+if(mines[i].hit==false) mines[i].hit=true;
+}
+}
+for (uint i2=0; i2<turrets.length(); i2++)
+{
+if(get_3d_distance(mines[i].x, mines[i].y, mines[i].z, turrets[i2].x, turrets[i2].y, turrets[i2].z)<=1)
+{
+p.play_3d("mineboom",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("minedist",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+turrets[i2].health-=random(100,1000);
+turrets[i2].hitby=(mines[i].owner=="me"?"your mine":mines[i].owner+"'s mine");
+turrets[i2].hitbyweapon="";
+if(mines[i].hit==false) mines[i].hit=true;
+}
+}
+for (uint i2=0; i2<sandbags.length(); i2++)
+{
+if(get_3d_distance(mines[i].x, mines[i].y, mines[i].z, sandbags[i2].x, sandbags[i2].y, sandbags[i2].z)<=1)
+{
+p.play_3d("mineboom",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("minedist",me.x,me.y,me.z,mines[i].x,mines[i].y,mines[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+p.play_3d("sandbag_impact",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+sandbags[i2].health-=random(100,1000);
+sandbags[i2].hitby=(mines[i].owner=="me"?"your mine":mines[i].owner+"'s mine");
+sandbags[i2].hitbyweapon="";
+if(mines[i].hit==false) mines[i].hit=true;
+}
+}
+if(mines[i].hit)
+{
+mines[i].minesound.close();
+@mines[i]=null;
+mines.remove_at(i);
+break;
+}
+}
+}
+void spawn_mine(int x, int y, int z, string owner)
+{
+mine mine1(x,y,z,owner);
+mines.insert_last(mine1);
+}
+void destroy_all_mines()
+{
+for (uint i=0; i<mines.length(); i++)
+{
+mines[i].minesound.close();
+}
+mines.resize(0);
+}

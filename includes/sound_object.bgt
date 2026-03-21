@@ -1,0 +1,181 @@
+class sound_object
+{
+long handle;
+double pan=0, volume=100, pitch=0, speed=0;
+dictionary@result;
+sound_object()
+{
+}
+void load(string name)
+{
+@result=dllib.call("long loadStream(char*, long);", "sounds/"+name+".ogg", BASS_STREAM_DECODE);
+result.get(0, handle);
+@result=dllib.call("long TempoCreate(long, long);", handle, BASS_FX_FREESOURCE);
+result.get(0, handle);
+}
+void load_looped(string name)
+{
+@result=dllib.call("long loadStream(char*, long);", "sounds/"+name+".ogg", BASS_STREAM_DECODE);
+result.get(0, handle);
+@result=dllib.call("long TempoCreate(long, long);", handle, BASS_SAMPLE_LOOP|BASS_FX_FREESOURCE);
+result.get(0, handle);
+}
+void load2(string name)
+{
+@result=dllib.call("long loadStream(char*, long);", name, BASS_STREAM_AUTOFREE);
+result.get(0, handle);
+}
+void load_looped2(string name)
+{
+@result=dllib.call("long loadStream(char*, long);", name, BASS_SAMPLE_LOOP|BASS_STREAM_AUTOFREE);
+result.get(0, handle);
+}
+void load3(string name)
+{
+@result=dllib.call("long loadStream(char*, long);", name, BASS_STREAM_DECODE);
+result.get(0, handle);
+@result=dllib.call("long TempoCreate(long, long);", handle, BASS_FX_FREESOURCE);
+result.get(0, handle);
+}
+void load_looped3(string name)
+{
+@result=dllib.call("long loadStream(char*, long);", name, BASS_STREAM_DECODE);
+result.get(0, handle);
+@result=dllib.call("long TempoCreate(long, long);", handle, BASS_SAMPLE_LOOP|BASS_FX_FREESOURCE);
+result.get(0, handle);
+}
+void LoadUrl(string url, long flags)
+{
+@result=dllib.call("long loadUrl(char*, long);", url, flags);
+result.get(0, handle);
+}
+void LoadUrl(string url, long flags, string filename)
+{
+@result=dllib.call("long loadUrl(char*, long, char*);", url, flags, filename);
+result.get(0, handle);
+}
+void play()
+{
+dllib.call("long channelPlay(long, BOOL);", handle, false);
+}
+void stop()
+{
+dllib.call("long channelStop(long);", handle);
+}
+void pause()
+{
+dllib.call("long channelPause(long);", handle);
+}
+void resume()
+{
+dllib.call("long channelPlay(long, BOOL);", handle, false);
+}
+bool is_active()
+{
+dictionary s=dllib.call("long isActive(long);", handle);
+int l;
+s.get(0, l);
+bool active=(l==BASS_ERROR_FILEOPEN?false:true);
+return active;
+}
+bool is_playing()
+{
+dictionary s=dllib.call("long isActive(long);", handle);
+int l;
+s.get(0, l);
+bool playing=(l==BASS_ACTIVE_PLAYING?true:false);
+return playing;
+}
+void close()
+{
+dllib.call("long channelStop(long);", handle);
+dllib.call("long streamFree(long);", handle);
+}
+void seekleft(int new_position)
+{
+dllib.call("long setPosition(long, double);", handle, getposition()-new_position);
+}
+void seekright(int new_position)
+{
+dllib.call("long setPosition(long, double);", handle, getposition()+new_position);
+}
+void seek()
+{
+dllib.call("long setPosition(long, double);", handle, 0);
+}
+void seekend()
+{
+dllib.call("long setPosition(long, double);", handle, getlength()-1);
+}
+void fade_in(int time)
+{
+dllib.call("long ChannelSlideAttribute(long, long, float, long);", handle, BASS_ATTRIB_VOL, 1, time);
+}
+void fade_out(int time=20)
+{
+dllib.call("long ChannelSlideAttribute(long, long, float, long);", handle, BASS_ATTRIB_VOL, 0, time);
+}
+bool setvolume(float value)
+{
+volume=value;
+dictionary s=dllib.call("long setAtribute(long, long, float);", handle, BASS_ATTRIB_VOL, value/100);
+int l;
+s.get(0, l);
+bool success=(l>=1) ? true : false;
+return success;
+}
+bool setpan(float value)
+{
+pan=value;
+dictionary s=dllib.call("long setAtribute(long, long, float);", handle, BASS_ATTRIB_PAN, value/100);
+int l;
+s.get(0, l);
+bool success=(l>=1) ? true : false;
+return success;
+}
+bool setpitchandspeed(float value)
+{
+pitch=value;
+speed=value;
+dictionary s=dllib.call("long setPitch(long, float);", handle, value/10);
+int l;
+s.get(0, l);
+dictionary s2=dllib.call("long setSpeed(long, float);", handle, value);
+int l2;
+s2.get(0, l2);
+bool success=(l>=1 and l2>=1) ? true : false;
+return success;
+}
+bool setpitch(float value)
+{
+pitch=value;
+dictionary s=dllib.call("long setPitch(long, float);", handle, value/10);
+int l;
+s.get(0, l);
+bool success=(l>=1) ? true : false;
+return success;
+}
+bool setspeed(float value)
+{
+speed=value;
+dictionary s=dllib.call("long setSpeed(long, float);", handle, value);
+int l;
+s.get(0, l);
+bool success=(l>=1) ? true : false;
+return success;
+}
+double getposition()
+{
+dictionary s=dllib.call("double getPosition(long);", handle);
+double l;
+s.get(0, l);
+return l;
+}
+double getlength()
+{
+dictionary s=dllib.call("double getLength(long);", handle);
+double l;
+s.get(0, l);
+return l;
+}
+}

@@ -1,0 +1,126 @@
+#include"score_item.bgt" //what's used to load all scores and process them.
+#include"dateandtime.bgt" //used in logger.
+#include"logger.bgt"
+#include "sd.bgt" //Our logger for logging packets sent and received on the server.
+network n;
+network_event e;
+file f;
+tts_voice v;
+string decryption_key="Sg1xy0FGoC2CM1H3CCqnYerKUDccultx";
+int port=53983;
+string ver="0.1";
+timer savetimer;
+void main()
+{
+if(!directory_exists("scores")) directory_create("scores");
+string[] s=find_files("scores/*.dat");
+for(uint i=0; i<s.length(); i+=1)
+{
+load_score_item(string_trim_right(s[i],4));
+}
+n.setup_server(port, 20, 500);
+while(true)
+{
+wait(5); 
+sbloop();
+if(savetimer.elapsed>=60000)
+{
+savetimer.restart();
+for(uint i=0; i<score_items.length(); i+=1)
+{
+save_score(score_items[i]);
+}
+}
+if(key_pressed(KEY_ESCAPE))
+{
+for(uint i=0; i<score_items.length(); i+=1)
+{
+save_score(score_items[i]);
+}
+exit();
+}
+}
+}
+void sbloop()
+{
+e=n.request(); //request net data.
+if(e.type==event_receive) //Incoming packets
+{
+if(e.channel==0)
+{
+string[] parsed=string_split(get_message(), " ", false);
+if(parsed[0]=="postscore" and parsed.length()>4) //Posting our score.
+{
+string gn=parsed[1]; //name of the game to add this to.
+string who=parsed[2]; //username for viewing scores later.
+int score=stn(parsed[3]);
+double playtime=stn(parsed[4]);
+string date=get_date()+" at "+get_time();
+string r=post_score(gn,who,score,playtime,date);
+send(e.peer_id,"scoreposted "+r);
+}
+else if(parsed[0]=="listscores" and parsed.length()>1)
+{
+send(e.peer_id,"scorelist "+list_scores());
+}
+}
+}
+if(e.type==event_disconnect)
+{
+n.disconnect_peer(e.peer_id);
+}
+}
+string get_message()
+{
+string ret=string_decrypt(e.message, "hG8ierAS97nGUDdOIVx1hsHC3iyfpXBM");
+return ret;
+}
+bool send(int peer, string packet)
+{
+return n.send_reliable(peer, string_encrypt(packet, "hG8ierAS97nGUDdOIVx1hsHC3iyfpXBM"), 0);
+}
+string randomstring()
+{
+string str="abcdefghijklmnopqrstuvwxyz1234567890!#";
+string ret;
+for(int i=1; i<=30; i++)
+{
+ret+=str[random(0, (str.length()-1))];
+}
+return ret;
+}
+string post_score(string gn, string user, int score, double playtime, string date)
+{
+score_item temp(user,score,playtime,date);
+score_items.insert_last(temp);
+return get_rank(score);
+}
+string list_scores()
+{
+string f;
+score_items.sort_descending();
+for(uint i=0; i<score_items.length(); i+=1)
+{
+f+=score_items[i].username+"="+score_items[i].score+"="+score_items[i].playtime+"="+score_items[i].date+"="+get_rank(score_items[i].score)+"\r\n";
+}
+return f;
+}
+string get_rank(int the_score)
+{
+int[] scores;
+for(uint i=0; i<score_items.length(); i+=1)
+{
+scores.insert_last(score_items[i].score);
+}
+scores.sort_descending();
+int retval=-1;
+retval=scores.find(the_score);
+retval++;
+return ""+retval;
+}
+double stn(string s) { 
+return string_to_number(s);
+}
+bool speak(string w) {
+return v.speak(w);
+}

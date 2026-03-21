@@ -1,0 +1,80 @@
+sandbag@[] sandbags(0);
+class sandbag
+{
+int x, y, z, health=random(5000,10000);
+string owner, hitby, hitbyweapon, id=randomstring();
+timer burntimer;
+sound_object burnloop;
+bool burned=false;
+int burn=0;
+bool burnsound=false;
+sandbag(int sbx, int sby, int sbz, string sbowner)
+{
+x=sbx;
+y=sby;
+z=sbz;
+owner=sbowner;
+p.play_3d("sandbag_place",me.x,me.y,me.z,x,y,z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+spawn_tile(x, x, y, y, z, z+5, 100, 0, 0, "wallsandbag", id);
+}
+}
+void sandbagloop()
+{
+for(uint i=0; i<sandbags.length(); i++)
+{
+if(sandbags[i].burned) position_sound_3d(sandbags[i].burnloop, me.x, me.y, me.z, sandbags[i].x, sandbags[i].y, sandbags[i].z, facing, 10, 5, 5, 0, 100, 0);
+if(sandbags[i].burned)
+{
+if(sandbags[i].burnsound==false)
+{
+sandbags[i].burnloop.load_looped("fire"+random(1,7));
+sandbags[i].burnloop.play();
+sandbags[i].burnsound=true;
+}
+if(sandbags[i].burntimer.elapsed>random(200,330))
+{
+sandbags[i].burntimer.restart();
+sandbags[i].health-=random(1,10);
+sandbags[i].burn++;
+}
+if(sandbags[i].burn==random(10,30))
+{
+sandbags[i].burnloop.close();
+sandbags[i].burnsound=false;
+sandbags[i].burned=false;
+}
+}
+if(sandbags[i].health<0)
+{
+for(uint i2=0; i2<tiles.length(); i2++)
+{
+if(tiles[i2].id==sandbags[i].id and !tiles[i2].id.is_empty())
+{
+@tiles[i2]=null;
+tiles.remove_at(i2);
+continue;
+}
+}
+p.play_3d("sandbag_destroy",me.x,me.y,me.z,sandbags[i].x,sandbags[i].y,sandbags[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(sandbags[i].burned) sandbags[i].burnloop.close();
+if(sandbags[i].hitbyweapon!="") killmsgw2(sandbags[i].owner+"'s sandbag", (sandbags[i].hitby=="me"?"you":sandbags[i].hitby), mapnickname, sandbags[i].hitbyweapon);
+else killmsg2(sandbags[i].owner+"'s sandbag", (sandbags[i].hitby=="me"?"you":sandbags[i].hitby), mapnickname);
+@sandbags[i]=null;
+sandbags.remove_at(i);
+break;
+}
+}
+}
+void spawn_sandbag(int x, int y, int z, string owner)
+{
+sandbag sb(x, y, z, owner);
+sandbags.insert_last(sb);
+}
+void destroy_all_sandbags()
+{
+for (uint i=0; i<sandbags.length(); i++)
+{
+if(sandbags[i].burned) sandbags[i].burnloop.close();
+ }
+sandbags.resize(0);
+}

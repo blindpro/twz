@@ -1,0 +1,557 @@
+tile@[]tiles(0);
+class tile
+{
+double minx,maxx,miny,maxy,minz,maxz,volume,pitch,speed,trackable;
+string type, id;
+tile(double tminx, double tmaxx, double tminy, double tmaxy, double tminz, double tmaxz, double tvolume, double tpitch, double tspeed, string ttype, string tid, int ttrackable)
+{
+minx=tminx;
+maxx=tmaxx;
+miny=tminy;
+maxy=tmaxy;
+minz=tminz;
+maxz=tmaxz;
+volume=tvolume;
+pitch=tpitch;
+speed=tspeed;
+type=ttype;
+id=tid;
+trackable=ttrackable;
+}
+}
+void spawn_tile(int minx, int maxx, int miny, int maxy, int minz, int maxz, int volume, int pitch, int speed, string type, string id, int trackable=0)
+{
+tile t(minx,maxx,miny,maxy,minz,maxz,volume,pitch,speed,type,id,trackable);
+tiles.insert_last(t);
+}
+zone@[]zones(0);
+class zone
+{
+double minx,maxx,miny,maxy,minz,maxz,trackable;
+string text, id;
+zone(double zminx, double zmaxx, double zminy, double zmaxy, double zminz, double zmaxz, string zid, string ztext, int ztrackable)
+{
+minx=zminx;
+maxx=zmaxx;
+miny=zminy;
+maxy=zmaxy;
+minz=zminz;
+maxz=zmaxz;
+id=zid;
+text=ztext;
+trackable=ztrackable;
+}
+}
+void spawn_zone(int minx, int maxx, int miny, int maxy, int minz, int maxz, string id, string text, int trackable=0)
+{
+zone z(minx,maxx,miny,maxy,minz,maxz,id,text,trackable);
+zones.insert_last(z);
+}
+string mapnickname;
+bool in_map=false;
+void load_map(string mapfile)
+{
+if(in_map) in_map=false;
+srcs.close();
+p.destroy_all;
+if(bullets.length()>0) destroy_all_bullets();
+if(enemies.length()>0) destroy_all_enemies();
+if(objs.length()>0) destroy_all_objs();
+if(timebombs.length()>0) destroy_all_timebombs();
+if(mines.length()>0) destroy_all_mines();
+if(fires.length()>0) destroy_all_fires();
+if(stores.length()>0) destroy_all_stores();
+if(turrets.length()>0) destroy_all_turrets();
+if(sandbags.length()>0) destroy_all_sandbags();
+if(doors.length()>0) destroy_all_doors();
+if(travelpoints.length()>0) destroy_all_travelpoints();
+if(blades.length()>0) destroy_all_blades();
+if(sources.length()>0) destroy_all_sources();
+if(musics.length()>0) destroy_all_musics();
+background_music=0;
+if(tiles.length()>0) tiles.resize(0);
+if(zones.length()>0) zones.resize(0);
+file f;
+f.open("maps/"+mapfile+".map", "rb");
+string mapdata=f.read();
+f.close();
+string[] lines=string_split(mapdata, "\r\n", true);
+for(uint i=0; i<lines.length(); i++)
+{
+if(lines[i].is_empty()) continue;
+if(lines.length()<1) continue;
+if(string_contains(lines[i]," ",1)<0) continue;
+if(string_contains(lines[i],"  ",1)>-1) continue;
+string[] parsed=string_split(lines[i], " ", true);
+if(parsed.length()<2) continue;
+if(parsed[0]=="nickname") mapnickname=string_replace(lines[i], "nickname ", "",false);
+else if(parsed[0]=="minx") min.x=string_to_number(parsed[1]);
+else if(parsed[0]=="maxx") max.x=string_to_number(parsed[1]);
+else if(parsed[0]=="miny") min.y=string_to_number(parsed[1]);
+else if(parsed[0]=="maxy") max.y=string_to_number(parsed[1]);
+else if(parsed[0]=="minz") min.z=string_to_number(parsed[1]);
+else if(parsed[0]=="maxz") max.z=string_to_number(parsed[1]);
+else if(parsed[0]=="tile" and parsed.length()>10)
+{
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) continue;
+if(parsed.length()>11) spawn_tile(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],"",1);
+else spawn_tile(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],"");
+}
+else if(parsed[0]=="wall" and parsed.length()>10)
+{
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) continue;
+if(parsed.length()>11) spawn_tile(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],"",1);
+else spawn_tile(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],"");
+}
+else if(parsed[0]=="zone" and parsed.length()>7)
+{
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) continue;
+if(string_contains(lines[i],"trackme",1)>-1) spawn_zone(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),"",string_replace(lines[i],parsed[0]+" "+parsed[1]+" "+parsed[2]+" "+parsed[3]+" "+parsed[4]+" "+parsed[5]+" "+parsed[6]+" ","",true),1);
+else spawn_zone(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),"",string_replace(lines[i],parsed[0]+" "+parsed[1]+" "+parsed[2]+" "+parsed[3]+" "+parsed[4]+" "+parsed[5]+" "+parsed[6]+" ","",true));
+}
+else if(parsed[0]=="src" and parsed.length()>10)
+{
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) continue;
+int amb=0;
+if(parsed.length>11) amb=string_to_number(parsed[11]);
+spawn_source(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],false,amb);
+}
+else if(parsed[0]=="music" and parsed.length()>10)
+{
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) continue;
+int amb=0;
+if(parsed.length>11) amb=string_to_number(parsed[11]);
+spawn_music(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],false,amb);
+}
+else if(parsed[0]=="background_music" and parsed.length()>1)
+{
+background_music=string_to_number(parsed[1]);
+if(background_music==0) background_mus.close();
+else
+{
+background_mus.load_looped("music"+random(1,11));
+background_mus.setvolume(mvol);
+background_mus.play();
+}
+}
+else if(parsed[0]=="store" and parsed.length()>1)
+{
+if(string_to_number(parsed[1])==0) destroy_all_stores();
+else
+{
+spawn_store(random(min.x,max.x),random(min.y,max.y),min.z);
+}
+}
+else if(parsed[0]=="door" and parsed.length()>15)
+{
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z or string_to_number(parsed[7])<min.x or string_to_number(parsed[7])>max.x or string_to_number(parsed[8])<min.y or string_to_number(parsed[8])>max.y or string_to_number(parsed[9])<min.z or string_to_number(parsed[9])>max.z) continue;
+spawn_door(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),string_to_number(parsed[10]),parsed[11],parsed[12],parsed[13],parsed[14],string_replace(lines[i],parsed[0]+" "+parsed[1]+" "+parsed[2]+" "+parsed[3]+" "+parsed[4]+" "+parsed[5]+" "+parsed[6]+" "+parsed[7]+" "+parsed[8]+" "+parsed[9]+" "+parsed[10]+" "+parsed[11]+" "+parsed[12]+" "+parsed[13]+" "+parsed[14]+" ","",true));
+}
+else if(parsed[0]=="travelpoint" and parsed.length()>11)
+{
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) continue;
+spawn_travelpoint(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),parsed[7],string_to_number(parsed[8]),string_to_number(parsed[9]),string_to_number(parsed[10]),string_replace(lines[i],parsed[0]+" "+parsed[1]+" "+parsed[2]+" "+parsed[3]+" "+parsed[4]+" "+parsed[5]+" "+parsed[6]+" "+parsed[7]+" "+parsed[8]+" "+parsed[9]+" "+parsed[10]+" ","",true));
+}
+else
+{
+alert("", "there is an error in the map file on line "+i+":\r\n"+lines[i]);
+}
+}
+in_map=true;
+}
+void addtile(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+string[] parsed=string_split(mapdata, " ", true);
+if(parsed.length()<2) return;
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) return;
+if(parsed.length()>11) spawn_tile(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],"",1);
+else spawn_tile(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],"");
+in_map=true;
+}
+void addwall(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+string[] parsed=string_split(mapdata, " ", true);
+if(parsed.length()<2) return;
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) return;
+if(parsed.length()>11) spawn_tile(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],"",1);
+else spawn_tile(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],"");
+in_map=true;
+}
+void addzone(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+string[] parsed=string_split(mapdata, " ", true);
+if(parsed.length()<2) return;
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) return;
+if(string_contains(mapdata,"trackme",1)>-1) spawn_zone(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),"",string_replace(mapdata,parsed[0]+" "+parsed[1]+" "+parsed[2]+" "+parsed[3]+" "+parsed[4]+" "+parsed[5]+" "+parsed[6]+" ","",true),1);
+else spawn_zone(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),"",string_replace(mapdata,parsed[0]+" "+parsed[1]+" "+parsed[2]+" "+parsed[3]+" "+parsed[4]+" "+parsed[5]+" "+parsed[6]+" ","",true));
+in_map=true;
+}
+void addsrc(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+string[] parsed=string_split(mapdata, " ", true);
+if(parsed.length()<2) return;
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) return;
+int amb=0;
+if(parsed.length>11) amb=string_to_number(parsed[11]);
+spawn_source(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],false,amb);
+in_map=true;
+}
+void addmusic(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+string[] parsed=string_split(mapdata, " ", true);
+if(parsed.length()<2) return;
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) return;
+int amb=0;
+if(parsed.length>11) amb=string_to_number(parsed[11]);
+spawn_music(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),parsed[10],false,amb);
+in_map=true;
+}
+void adddoor(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+string[] parsed=string_split(mapdata, " ", true);
+if(parsed.length()<2) return;
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z or string_to_number(parsed[7])<min.x or string_to_number(parsed[7])>max.x or string_to_number(parsed[8])<min.y or string_to_number(parsed[8])>max.y or string_to_number(parsed[9])<min.z or string_to_number(parsed[9])>max.z) return;
+spawn_door(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),string_to_number(parsed[7]),string_to_number(parsed[8]),string_to_number(parsed[9]),string_to_number(parsed[10]),parsed[11],parsed[12],parsed[13],parsed[14],string_replace(mapdata,parsed[0]+" "+parsed[1]+" "+parsed[2]+" "+parsed[3]+" "+parsed[4]+" "+parsed[5]+" "+parsed[6]+" "+parsed[7]+" "+parsed[8]+" "+parsed[9]+" "+parsed[10]+" "+parsed[11]+" "+parsed[12]+" "+parsed[13]+" "+parsed[14]+" ","",true));
+in_map=true;
+}
+void addtravelpoint(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+string[] parsed=string_split(mapdata, " ", true);
+if(parsed.length()<2) return;
+if(string_to_number(parsed[1])<min.x or string_to_number(parsed[1])>max.x or string_to_number(parsed[2])<min.x or string_to_number(parsed[2])>max.x or string_to_number(parsed[3])<min.y or string_to_number(parsed[3])>max.y or string_to_number(parsed[4])<min.y or string_to_number(parsed[4])>max.y or string_to_number(parsed[5])<min.z or string_to_number(parsed[5])>max.z or string_to_number(parsed[6])<min.z or string_to_number(parsed[6])>max.z) return;
+spawn_travelpoint(string_to_number(parsed[1]),string_to_number(parsed[2]),string_to_number(parsed[3]),string_to_number(parsed[4]),string_to_number(parsed[5]),string_to_number(parsed[6]),parsed[7],string_to_number(parsed[8]),string_to_number(parsed[9]),string_to_number(parsed[10]),string_replace(mapdata,parsed[0]+" "+parsed[1]+" "+parsed[2]+" "+parsed[3]+" "+parsed[4]+" "+parsed[5]+" "+parsed[6]+" "+parsed[7]+" "+parsed[8]+" "+parsed[9]+" "+parsed[10]+" ","",true));
+in_map=true;
+}
+void addbackground_music(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+background_music=string_to_number(mapdata);
+if(background_music==0) background_mus.close();
+else
+{
+background_mus.load_looped("music"+random(1,11));
+background_mus.setvolume(mvol);
+background_mus.play();
+}
+in_map=true;
+}
+void addstore(string mapdata)
+{
+if(in_map) in_map=false;
+if(mapdata.is_empty()) return;
+if(mapdata.length()<1) return;
+if(string_contains(mapdata," ",1)<0) return;
+if(string_contains(mapdata,"  ",1)>-1) return;
+if(string_to_number(mapdata)==0) destroy_all_stores();
+else
+{
+spawn_store(random(min.x,max.x),random(min.y,max.y),min.z);
+}
+in_map=true;
+}
+string get_tile_at(int x, int y, int z)
+{
+string final;
+for(uint i=0; i<tiles.length(); i++)
+{
+if(tiles[i].minx<=x&&tiles[i].maxx>=x&&tiles[i].miny<=y&&tiles[i].maxy>=y&&tiles[i].minz<=z&&tiles[i].maxz>=z)
+{
+if(string_contains(tiles[i].type,"trackme",1)>-1) tiles[i].type=string_replace(tiles[i].type, "trackme", "", true);
+final=tiles[i].type;
+}
+}
+return final;
+}
+string get_tile_at2(int x, int y, int z)
+{
+string final;
+for(uint i=0; i<tiles.length(); i++)
+{
+if(tiles[i].minx<=x&&tiles[i].maxx>=x&&tiles[i].miny<=y&&tiles[i].maxy>=y&&tiles[i].minz<=z&&tiles[i].maxz>=z)
+{
+if(string_contains(tiles[i].type,"trackme",1)>-1) tiles[i].type=string_replace(tiles[i].type, "trackme", "", true);
+if(tilevolume!=tiles[i].volume) tilevolume=tiles[i].volume;
+if(tilepitch!=tiles[i].pitch) tilepitch=tiles[i].pitch;
+if(tilespeed!=tiles[i].speed) tilespeed=tiles[i].speed;
+final=tiles[i].type;
+}
+}
+return final;
+}
+string get_zone_at(int x, int y, int z)
+{
+string final;
+for(uint i=0; i<zones.length(); i++)
+{
+if(zones[i].minx<=x&&zones[i].maxx>=x&&zones[i].miny<=y&&zones[i].maxy>=y&&zones[i].minz<=z&&zones[i].maxz>=z)
+{
+if(string_contains(zones[i].text," trackme",1)>-1) zones[i].text=string_replace(zones[i].text, " trackme", "", true);
+final=zones[i].text;
+}
+}
+return final;
+}
+void move(string dir)
+{
+if(dir==Up)
+{
+if(get_tile_at(me.x, me.y, me.z+1)!="" and get_tile_at(me.x, me.y, me.z+1)!="air")
+{
+if(string_contains(get_tile_at(me.x, me.y, me.z+1), "wall", 1)>-1)
+{
+p.play_stationary(get_tile_at(me.x, me.y, me.z+1),0,100,0,0,false);
+}
+else
+{
+me.z++;
+playstep();
+}
+}
+}
+if(dir==Down)
+{
+if(get_tile_at(me.x, me.y, me.z-1)!="" and get_tile_at(me.x, me.y, me.z-1)!="air" and string_left(get_tile_at(me.x,me.y,me.z-1),4)!="wall")
+{
+if(string_contains(get_tile_at(me.x, me.y, me.z-1), "wall", 1)>-1)
+{
+p.play_stationary(get_tile_at(me.x, me.y, me.z-1),0,100,0,0,false);
+}
+else
+{
+me.z--;
+playstep();
+}
+}
+}
+if(dir==Forward)
+{
+double ox=me.x;
+double oy=me.y;
+me=move(me.x, me.y, me.z, facing, 0, north, 0);
+if(round(me.x, 0)<min.x or round(me.x, 0)>max.x or round(me.y, 0)<min.y or round(me.y, 0)>max.y or round(me.z, 0)<min.z or round(me.z, 0)>max.z)
+{
+me.x=ox;
+me.y=oy;
+return;
+}
+checkaround(ox, oy);
+}
+if(dir==Backward)
+{
+double ox=me.x;
+double oy=me.y;
+me=move(me.x, me.y, me.z, facing, 0, south, 0);
+if(round(me.x, 0)<min.x or round(me.x, 0)>max.x or round(me.y, 0)<min.y or round(me.y, 0)>max.y or round(me.z, 0)<min.z or round(me.z, 0)>max.z)
+{
+me.x=ox;
+me.y=oy;
+return;
+}
+checkaround(ox, oy);
+}
+if(dir==Left)
+{
+double ox=me.x;
+double oy=me.y;
+me=move(me.x, me.y, me.z, facing, 0, west, 0);
+if(round(me.x, 0)<min.x or round(me.x, 0)>max.x or round(me.y, 0)<min.y or round(me.y, 0)>max.y or round(me.z, 0)<min.z or round(me.z, 0)>max.z)
+{
+me.x=ox;
+me.y=oy;
+return;
+}
+checkaround(ox, oy);
+}
+if(dir==Right)
+{
+double ox=me.x;
+double oy=me.y;
+me=move(me.x, me.y, me.z, facing, 0, east, 0);
+if(round(me.x, 0)<min.x or round(me.x, 0)>max.x or round(me.y, 0)<min.y or round(me.y, 0)>max.y or round(me.z, 0)<min.z or round(me.z, 0)>max.z)
+{
+me.x=ox;
+me.y=oy;
+return;
+}
+checkaround(ox, oy);
+}
+}
+void checkaround(double ox, double oy)
+{
+me.x=round(me.x, 0);
+me.y=round(me.y, 0);
+if(string_contains(get_tile_at(me.x, me.y, me.z), "wall", 1)>-1)
+{
+p.play_3d(get_tile_at(me.x, me.y, me.z)+"", me.x, me.y, me.z, me.x, me.y, me.z, facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+me.x=ox;
+me.y=oy;
+me.x=round(ox,3);
+me.y=round(oy,3);
+}
+else
+{
+playstep();
+}
+}
+void playstep()
+{
+int x=me.x, y=me.y, z=me.z;
+if(jumping==false)
+{
+p.play_stationary(get_tile_at2(me.x,me.y,me.z)+"step"+random(1,5),0,tilevolume,tilepitch,tilespeed,false);
+}
+}
+int get_tile_index(string type)
+{
+for(uint i=0; i<tiles.length(); i++)
+{
+if(tiles[i].type==type)
+{
+return i;
+}
+}
+return -1;
+}
+int get_zone_index(string text)
+{
+for(uint i=0; i<zones.length(); i++)
+{
+if(zones[i].text==text)
+{
+return i;
+}
+}
+return -1;
+}
+class binput
+{
+string[] indata;
+string[] innames;
+binput(string[] names, string[] input)
+{
+indata=input;
+innames=names;
+}
+int num(string val)
+{
+int ix=innames.find(val);
+if(ix>-1) return string_to_number(indata[ix]);
+return -1;
+}
+string str(string val)
+{
+int ix=innames.find(val);
+if(ix>-1) return indata[ix];
+return "";
+}
+}
+binput@ builder_input(string spec)
+{
+if(spec=="") return null;
+string[] items=delinear(spec);
+string[] names,vals;
+for(uint i=0; i<items.length; i++)
+{
+string[] p=string_split(items[i],"=",true);
+names.insert_last(p[0]);
+string tmp;
+tmp=input_box("",p[1]);
+if(tmp=="")
+{
+return null;
+}
+vals.insert_last(tmp);
+}
+binput res(names,vals);
+return res;
+}
+binput@ builder_inputmultiline(string spec)
+{
+if(spec=="") return null;
+string[] items=delinear(spec);
+string[] names,vals;
+for(uint i=0; i<items.length; i++)
+{
+string[] p=string_split(items[i],"=",true);
+names.insert_last(p[0]);
+string tmp;
+tmp=input_box("",p[1],"");
+if(tmp=="")
+{
+return null;
+}
+vals.insert_last(tmp);
+}
+binput res(names,vals);
+return res;
+}
+int find_tile(string id)
+{
+for(uint i=0; i<tiles.length(); i++)
+{
+if(tiles[i].id==id)
+return i;
+}
+return -1;
+}
+int find_zone(string id)
+{
+for(uint i=0; i<zones.length(); i++)
+{
+if(zones[i].id==id)
+return i;
+}
+return -1;
+}
+string linear(string[] a)
+{
+string final;
+for(uint i=0; i<a.length(); i++)
+{
+final+=(a[i]+"\r\n");
+}
+return final;
+}
+string[] delinear(string a)
+{
+return string_split(a, "\r\n", false);
+}

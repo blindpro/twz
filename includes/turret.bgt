@@ -1,0 +1,137 @@
+turret@[] turrets(0);
+class turret
+{
+int x, y, z, health=random(5000,10000), id=random(111, 999), clipsize=100, chargelevel=100;
+string owner, hitby, hitbyweapon;
+timer looptimer, firetimer, chargetimer, burntimer;
+sound_object burnloop;
+bool burned=false;
+int burn=0;
+bool burnsound=false;
+turret(int tx, int ty, int tz, string towner)
+{
+x=tx;
+y=ty;
+z=tz;
+owner=towner;
+}
+}
+void turretloop()
+{
+for(uint i=0; i<turrets.length(); i++)
+{
+if(turrets[i].burned) position_sound_3d(turrets[i].burnloop, me.x, me.y, me.z, turrets[i].x, turrets[i].y, turrets[i].z, facing, 10, 5, 5, 0, 100, 0);
+if(turrets[i].looptimer.elapsed>=2019 and turrets[i].chargelevel<=0==false)
+{
+turrets[i].looptimer.restart();
+p.play_3d("turretloop",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+if(turrets[i].chargetimer.elapsed>=10000 and turrets[i].chargelevel<=0==false)
+{
+turrets[i].chargetimer.restart();
+turrets[i].chargelevel-=1;
+}
+if(turrets[i].burned)
+{
+if(turrets[i].burnsound==false)
+{
+turrets[i].burnloop.load_looped("fire"+random(1,7));
+turrets[i].burnloop.play();
+turrets[i].burnsound=true;
+}
+if(turrets[i].burntimer.elapsed>random(200,330))
+{
+turrets[i].burntimer.restart();
+turrets[i].health-=random(1,10);
+turrets[i].burn++;
+}
+if(turrets[i].burn==random(10,30))
+{
+turrets[i].burnloop.close();
+turrets[i].burnsound=false;
+turrets[i].burned=false;
+}
+}
+if(turrets[i].health<0)
+{
+p.play_3d("turretdie",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("timebombexplodedist",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(turrets[i].burned) turrets[i].burnloop.close();
+if(turrets[i].hitbyweapon!="") killmsgw2(turrets[i].owner+"'s turret "+turrets[i].id, (turrets[i].hitby=="me"?"you":turrets[i].hitby), mapnickname, turrets[i].hitbyweapon);
+else killmsg2(turrets[i].owner+"'s turret "+turrets[i].id, (turrets[i].hitby=="me"?"you":turrets[i].hitby), mapnickname);
+@turrets[i]=null;
+turrets.remove_at(i);
+break;
+}
+if(get_3d_distance(turrets[i].x, turrets[i].y, turrets[i].z, me.x, me.y, me.z)<=25 and turrets[i].owner!="me" and turrets[i].firetimer.elapsed>=random(90,130) and turrets[i].clipsize<=0==false and turrets[i].chargelevel<=0==false)
+{
+turrets[i].firetimer.restart();
+p.play_3d("turret",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("turretdist",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+turrets[i].clipsize--;
+if(shielded and shieldshots>0)
+{
+p.play_stationary("shieldhit"+random(1,10),0,100,0,0,false);
+shieldshots--;
+}
+else
+{
+p.play_stationary("hit"+random(1,5),0,100,0,0,false);
+p.play_stationary("pain"+random(1,5),0,100,0,0,false);
+health-=random(50,100);
+}
+}
+for (uint i2=0; i2<enemies.length(); i2++)
+{
+if(get_3d_distance(turrets[i].x, turrets[i].y, turrets[i].z, enemies[i2].x, enemies[i2].y, enemies[i2].z)<=25 and enemies[i2].dead==false and turrets[i].owner!=i2 and turrets[i].owner!=enemies[i2].ride and turrets[i].firetimer.elapsed>=random(90,130) and turrets[i].clipsize<=0==false and turrets[i].chargelevel<=0==false)
+{
+turrets[i].firetimer.restart();
+p.play_3d("turret",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+distpool.play_3d("turretdist",me.x,me.y,me.z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+turrets[i].clipsize--;
+if(enemies[i2].shielded==1 and enemies[i2].shieldshots>0)
+{
+p.play_3d("shieldhit"+random(1,10),enemies[i2].x,enemies[i2].y,enemies[i2].z,turrets[i].x,turrets[i].y,turrets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i2].shieldshots--;
+}
+else
+{
+if(enemies[i2].type==1) p.play_3d("policehit"+random(1,7),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==2) p.play_3d("tankhit"+random(1,5),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==3) p.play_3d("aircrafthit"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==4) p.play_3d("helicopterhit"+random(1,2),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==5)
+{
+int n=random(1,2);
+if(n==1) p.play_3d("aircrafthit"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else p.play_3d("policehit"+random(1,5),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else if(enemies[i2].type==6) p.play_3d("bushit"+random(1,2),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else
+{
+p.play_3d("hit"+random(1,5),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+int t=enemies[i2].type-6;
+p.play_3d("enemy"+t+"pain"+random(1,3),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+enemies[i2].health-=random(50,100);
+enemies[i2].hitby=turrets[i].owner;
+enemies[i2].hitby2=(turrets[i].owner=="me"?"your turret":turrets[i].owner+"'s turret");
+enemies[i2].hitbyweapon="";
+}
+}
+}
+}
+}
+void spawn_turret(int x, int y, int z, string owner)
+{
+turret t(x, y, z, owner);
+turrets.insert_last(t);
+}
+void destroy_all_turrets()
+{
+for (uint i=0; i<turrets.length(); i++)
+{
+if(turrets[i].burned) turrets[i].burnloop.close();
+}
+turrets.resize(0);
+}

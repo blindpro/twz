@@ -1,0 +1,16 @@
+void main()
+{
+string filename=input_box("filename","please type the file name here");
+if(filename=="") exit();
+string text=input_box("text","please type it's text here");
+if(text=="") exit();
+string key=input_box("key","please type it's key here");
+if(key=="") exit();
+show_game_window("web file encrypter. By mahdi abedi");
+file f;
+f.open(filename,"wb");
+f.write(string_encrypt(text,key));
+f.close();
+alert("done",""+text+" written in "+filename+" and encrypted with "+key);
+exit();
+}

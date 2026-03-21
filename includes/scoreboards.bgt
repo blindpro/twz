@@ -1,0 +1,149 @@
+string internalgame="TheWarZone";
+class scoreboard
+{
+network @n;
+network_event e;
+private uint peer;
+string ip_address;
+int port;
+timer connectiontimer;
+scoreboard(string ip,int p)
+{
+ip_address=ip;
+port=p;
+network tempnet;
+@n=tempnet;
+}
+bool send(uint peer,string packet,int channel)
+{
+return n.send_reliable(peer,string_encrypt(packet,"hG8ierAS97nGUDdOIVx1hsHC3iyfpXBM"),channel);
+}
+string get_message()
+{
+return string_decrypt(e.message, "hG8ierAS97nGUDdOIVx1hsHC3iyfpXBM");
+}
+void reset_connection()
+{
+peer=0;
+n.disconnect_peer(0);
+n.destroy();
+@n=null;
+network temp;
+@n=temp;
+}
+void post_score(int score,double playtime,string g=internalgame)
+{
+p.play_stationary("scm_drum",0,100,0,0,false);
+bool sentpacket=false;
+speak("Connecting to scoreboard server...");
+if(n.active) reset_connection();
+n.setup_client(20,500);
+n.connect(ip_address,port);
+if(get_last_error()!=0)
+{
+MessageBox("error","network failed to initialize. Error code: "+get_last_error());
+exit();
+}
+connectiontimer.restart();
+while(true)
+{
+wait(5);
+e=n.request();
+if (key_pressed(KEY_ESCAPE))
+{
+speak("canceled");
+reset_connection();
+break;
+}
+if(e.type==event_connect)
+{
+if(!sentpacket)
+{
+sentpacket=true;
+send(0,"postscore "+(g==internalgame?g:internalgame+"_"+g)+" "+name+" "+score+" "+playtime+" "+version,0);
+}
+}
+if(e.type==event_receive and e.channel==0)
+{
+string[] parsed=string_split(get_message()," ",false);
+if(parsed[0]=="scoreposted" and parsed.length()>1)
+{
+int rank=string_to_number(parsed[1]);
+string message;
+if(rank<=10) message="Congratulations! Your score made it to the top 10! Your position is "+rank;
+else message="Sorry, but your score wasn't good enough to make it to the top 10. Your position is "+rank;
+dlgmeu(message,"scm_"+random(1,30),true,25);
+break;
+}
+}
+}
+}
+void request_score_list(string g=internalgame)
+{
+bool sentpacket=false;
+speak("Connecting to scoreboard server...");
+if(n.active) reset_connection();
+n.setup_client(20,500);
+n.connect(ip_address,port);
+if(get_last_error()!=0)
+{
+MessageBox("error","network failed to initialize. Error code: "+get_last_error());
+exit();
+}
+connectiontimer.restart();
+while(true)
+{
+wait(5);
+e=n.request();
+if (key_pressed(KEY_ESCAPE))
+{
+speak("canceled");
+reset_connection();
+menu();
+break;
+}
+if(e.type==event_connect)
+{
+if(!sentpacket)
+{
+sentpacket=true;
+send(0,"listscores "+(g==internalgame?g:internalgame+"_"+g),0);
+}
+}
+if(e.type==event_receive and e.channel==0)
+{
+string[] parsed=string_split(get_message()," ",false);
+if(parsed[0]=="scorelist" and parsed.length()>1)
+{
+if(parsed[1]=="noscores")
+{
+dlg("There are no scores yet. Why not post one!");
+menu();
+break;
+}
+else
+{
+setupmenu();
+string[] data=string_split(string_replace(get_message(),parsed[0]+" ","",false),"\r\n",false);
+for(uint i=0; i<data.length(); i+=1)
+{
+string[] parsed=string_split(data[i],"=",false);
+string u=parsed[0];
+int score=string_to_number(parsed[1]);
+int playtime=string_to_number(parsed[2]);
+string date=parsed[3];
+int rank=string_to_number(parsed[4]);
+m.add_item_tts(rank+": "+u+", "+score+" "+(score==1?"kill":"kills")+" in "+ms_to_readable_time(playtime)+". "+date,u);
+}
+m.add_item_tts("go back","back");
+int mres=m.run("Scores menu",true);
+menu();
+break;
+
+//list_scores(string_replace(get_message(),parsed[0]+" ","",false));
+}
+}
+}
+}
+}
+}

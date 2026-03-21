@@ -1,0 +1,60 @@
+#include"hip.bgt"
+score_item@[]score_items(0);
+class score_item
+{
+string username;
+int score;
+double playtime;
+string date;
+string id;
+score_item(string w,int s,double pt,string d,string sid="")
+{
+username=w;
+score=s;
+playtime=pt;
+date=d;
+if(sid=="") id=randomstring(); else id=sid;
+}
+int opCmp(score_item@ o)
+{
+if(o.score<this.score or o.score==this.score) return 1;
+if(o.score>this.score or o.score==this.score) return -1;
+else return 0;
+}
+}
+void save_score(score_item@s)
+{
+string writetext;
+if(@s==null) return;
+writetext+=s.username+"[;]"+s.score+"[;]"+s.playtime+"[;]"+s.date+"[;]"+s.id+"\r\n";
+file_put_contents("scores/"+s.username+"_"+s.id+".dat",writetext,250);
+}
+int get_score_index_from()
+{
+int res=-1;
+for(uint i=0; i<score_items.length(); i+=1)
+{
+res=i;
+}
+return res;
+}
+void load_score_item(string data)
+{
+string un,id;
+int score;
+double playtime;
+string date;
+string sdata=file_get_contents("scores/"+data+".dat");
+if(sdata=="") return;
+string[] parsed=string_split(sdata,"[;]",false);
+if(parsed.length()>4)
+{
+un=parsed[0];
+score=stn(parsed[1]);
+playtime=stn(parsed[2]);
+date=parsed[3];
+id=parsed[4];
+score_item temp(un,score,playtime,date,id);
+score_items.insert_last(temp);
+}
+}

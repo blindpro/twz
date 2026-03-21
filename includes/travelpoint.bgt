@@ -1,0 +1,40 @@
+travelpoint@[] travelpoints(0);
+class travelpoint
+{
+int nx, ny, nz;
+string nmap;
+string text;
+int mindx;
+int maxdx;
+int mindy;
+int maxdy;
+int mindz;
+int maxdz;
+travelpoint(int mintravelpointx, int maxtravelpointx, int mintravelpointy, int maxtravelpointy, int mintravelpointz, int maxtravelpointz, string newmap, int newx, int newy, int newz, string tx)
+{
+nx=newx;
+ny=newy;
+nz=newz;
+nmap=newmap;
+mindx=mintravelpointx;
+maxdx=maxtravelpointx;
+mindy=mintravelpointy;
+maxdy=maxtravelpointy;
+mindz=mintravelpointz;
+maxdz=maxtravelpointz;
+text=tx;
+}
+}
+void spawn_travelpoint(int mintravelpointx, int maxtravelpointx, int mintravelpointy, int maxtravelpointy, int mintravelpointz, int maxtravelpointz, string newmap, int newx, int newy, int newz, string text)
+{
+travelpoint travelpoint1(mintravelpointx, maxtravelpointx, mintravelpointy, maxtravelpointy, mintravelpointz, maxtravelpointz, newmap, newx, newy, newz, text);
+travelpoints.insert_last(travelpoint1);
+}
+void destroy_travelpoint(int d)
+{
+travelpoints.remove_at(d);
+}
+void destroy_all_travelpoints()
+{
+travelpoints.resize(0);
+}

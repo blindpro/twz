@@ -1,0 +1,35 @@
+weapon@[] weapons(0);
+class weapon
+{
+bool automatic;
+bool reloading;
+int reloadtime;
+bool hasammo=false;
+int ammo=0;
+int maxammo;
+string name;
+int damage;
+int range;
+int time;
+int speed;
+string ammotype;
+timer reloadtimer;
+weapon(string nam, int dam, int ran, int tim, int spe, bool ha, int ma,int lt, bool autom, string ammot="")
+{
+automatic=autom;
+reloadtime=lt;
+hasammo=ha;
+maxammo=ma;
+name=nam;
+damage=dam;
+range=ran;
+time=tim;
+speed=spe;
+ammotype=ammot;
+}
+}
+void we(string nam, int dam, int ran, int tim, int spe, bool ha, int ma,int lt, bool autom, string ammot="")
+{
+weapon w1(nam, dam, ran, tim, spe, ha, ma, lt, autom, ammot);
+weapons.insert_last(w1);
+}

@@ -1,0 +1,926 @@
+#include"key_hold.bgt"
+key_hold left(KEY_LEFT,300,50);
+key_hold right(KEY_RIGHT,300,50);
+key_hold up(KEY_UP,300,50);
+key_hold down(KEY_DOWN,300,50);
+tts_voice tts;
+int found_reader=0;
+void fade (sound_object@ handle, double final_volume=0, double delay=25)
+{
+if(handle is null) return;
+if(handle.is_active()==false) return;
+if (handle.volume == final_volume)
+{
+return;
+}
+while (handle.volume != final_volume)
+{
+if (handle.volume > final_volume)
+{
+handle.setvolume(handle.volume-1);
+}
+else if (handle.volume < final_volume)
+{
+handle.setvolume(handle.volume+1);
+}
+wait (delay);
+}
+}
+void speak(string text)
+{
+add_sbuffer_item("speech",text);
+if(found_reader==0) found_reader=auto_select_screen_reader();
+if(found_reader==0)
+{
+tts.speak(translate_text(text));
+}
+else
+{
+screen_reader_speak(found_reader, translate_text(text));
+}
+}
+bool speak_to_file(string fn, string what)
+{
+return tts.speak_to_file(fn,what);
+}
+void stopspeech()
+{
+for (uint i=1; i<=1; i++)
+{
+if (screen_reader_is_running(i))
+{
+screen_reader_stop_speech(i);
+}
+}
+}
+int auto_select_screen_reader()
+{
+if (screen_reader_is_running(1))
+{
+return 1;
+}
+else if (screen_reader_is_running(2))
+{
+return 2;
+}
+else if (screen_reader_is_running(3))
+{
+return 3;
+}
+else if (screen_reader_is_running(4))
+{
+return 4;
+}
+else
+{
+return 0;
+}
+}
+class dynamic_menu_item
+{
+string option;
+bool is_filename;
+bool activate;
+bool notgamesound=false;
+string name;
+string letter;
+dynamic_menu_item()
+{
+option="";
+is_filename=true;
+name="";
+activate=false;
+notgamesound=false;
+}
+}
+
+class dynamic_menu_pro
+{
+bool letters_autospeak=true;
+bool letters_autoactivate;
+bool speak_letter;
+bool enable_first_letter_navigation;
+bool enable_multi_letter_navigation;
+bool click_at_edge;
+bool repeat_items_at_edges;
+bool enable_numbers;
+bool enable_space;
+bool enable_enter=true;
+bool speak_position_information;
+bool position;
+bool enable_side_scrolling;
+bool wrap;
+bool allow_escape;
+bool force_sapi;
+bool enable_home_and_end;
+bool enable_up_and_down;
+bool enable_left_and_right;
+dynamic_menu_pro()
+{
+running=false;
+reset(true);
+}
+
+int add_item(string filename, string name="", string key="", bool act=true, bool notgamesound=false)
+{
+return add_item(filename, true, name,key, act, notgamesound);
+}
+
+int add_item_tts(string text, string name="", string key="", bool act=true)
+{
+return add_item(text, false, name,key,act);
+}
+
+bool set_speech_mode(int speech_output)
+{
+if((speech_output<0)||(speech_output>4))
+{
+return false;
+}
+this.speech_output=speech_output;
+return true;
+}
+
+int get_item_count()
+{
+return item_list.length();
+}
+
+int get_position()
+{
+if(running==false)
+{
+return -1;
+}
+return menu_position;
+}
+
+bool is_running()
+{
+return running;
+}
+
+bool set_tts_object(tts_voice@ handle)
+{
+if(running==true)
+{
+return false;
+}
+@tts_handle=@handle;
+return true;
+}
+bool set_sound_object(sound_object@ handle)
+{
+if(running==true)
+{
+return false;
+}
+@sound_handle=@handle;
+return true;
+}
+
+bool set_callback(menu_callback@ callback, string user_data)
+{
+if(running==true)
+{
+return false;
+}
+@callback_handle=@callback;
+callback_data=user_data;
+return true;
+}
+
+string get_item_name(int item)
+{
+if(item<1 or item>item_list.length())
+{
+return "";
+}
+return item_list[item-1].name;
+}
+
+int run(string intro, bool is_intro_tts)
+{
+return run(intro, is_intro_tts, 0,false);
+}
+
+int run(string intro, bool is_intro_tts, int start_position, bool auto_speak_first)
+{
+if(running==true)
+{
+return -1;
+}
+reset_all_forced_keys();
+int item_count=item_list.length();
+if(item_count==0)
+{
+return -1;
+}
+if(start_position>item_count)
+{
+return -1;
+}
+menu_position=start_position;
+bool speak_item=false;
+if(start_position<1 && auto_speak_first==true)
+{
+return -1;
+}
+bool initial=auto_speak_first;
+sound_object@ internal_sound;
+tts_voice@ internal_tts;
+if(@sound_handle==null)
+{
+sound_object temp_sound;
+@internal_sound=temp_sound;
+}
+else
+{
+@internal_sound=sound_handle;
+}
+bool has_tts_items=is_intro_tts;
+if(has_tts_items==false)
+{
+for(int i=0;i<item_count;i++)
+{
+if(item_list[i].is_filename==false)
+{
+has_tts_items=true;
+break;
+}
+}
+}
+if(speech_output==0 and has_tts_items==true)
+{
+if(@tts_handle==null)
+{
+tts_voice temp_voice;
+@internal_tts=temp_voice;
+}
+else
+{
+@internal_tts=tts_handle;
+}
+}
+if(intro!="")
+{
+if(is_intro_tts==true)
+{
+if(speech_output>0 and speech_output<5)
+{
+if(screen_reader_speak_interrupt(speech_output, intro)==false)
+{
+return -1;
+}
+}
+else if (force_sapi==false)
+{
+speak(intro);
+}
+else
+{
+if(internal_tts.speak_interrupt(intro)==false)
+{
+return -1;
+}
+}
+}
+else
+{
+internal_sound.load(intro);
+internal_sound.play();
+}
+}
+running=true;
+if (enable_first_letter_navigation==true)
+get_characters();
+string char;
+string test;
+while(true)
+{
+if (enable_first_letter_navigation==true)
+{
+char=get_characters();
+if(char!="" and !string_is_digits(char))
+{
+bool found=false;
+for (uint i=menu_position; i<item_list.length(); i++)
+{
+test=item_list[i].letter;
+if (test==char)
+{
+if (menu_position-1<i)
+menu_position=i+1;
+else if (menu_position-1>i and test==char)
+menu_position=i+1;
+if (letters_autospeak==true)
+speak_item=true;
+if (letters_autoactivate==true)
+{
+running=false;
+return menu_position;
+}
+found=true;
+break;
+}
+else
+{
+continue;
+}
+}
+if (found==false)
+{
+for (uint i=0; i<menu_position; i++)
+{
+test=item_list[i].letter;
+if (test==char)
+{
+if (menu_position-1<i)
+menu_position=i+1;
+else if (menu_position-1>i and test==char)
+menu_position=i+1;
+if (letters_autospeak==true)
+speak_item=true;
+if (letters_autoactivate==true)
+{
+running=false;
+return menu_position;
+}
+break;
+}
+else
+{
+continue;
+}
+}
+}
+}
+}
+if(@callback_handle!=null)
+{
+int callback_result=callback_handle(this, callback_data);
+if(callback_result!=0)
+{
+running=false;
+return callback_result;
+}
+}
+
+// Check to see if there's an item that needs to be spoken.
+if(speak_item==true)
+{
+string secondary;
+if (speak_letter==true)
+{
+secondary=" "+item_list[menu_position-1].letter;
+}
+if(item_list[menu_position-1].is_filename==true)
+{
+if(@internal_tts!=null)
+{
+internal_tts.stop();
+}
+internal_sound.close();
+if(item_list[menu_position-1].notgamesound==false) internal_sound.load(item_list[menu_position-1].option);
+else internal_sound.load2(item_list[menu_position-1].option);
+internal_sound.play();
+}
+else
+{
+if(internal_sound.is_active()==true)
+{
+internal_sound.close();
+}
+if(speech_output>0 and speech_output<5)
+{
+if (speak_position_information==true)
+{
+if(screen_reader_speak_interrupt(speech_output, item_list[menu_position-1].option+secondary+". "+menu_position+" of "+get_item_count())==false)
+{
+running=false;
+return -1;
+}
+}
+else
+{
+if(screen_reader_speak_interrupt(speech_output, item_list[menu_position-1].option+secondary+". "+menu_position+" of "+get_item_count())==false)
+{
+running=false;
+return -1;
+}
+}
+}
+else if (force_sapi==false)
+{
+if (speak_position_information==true)
+{
+speak(item_list[menu_position-1].option+secondary+". "+menu_position+" of "+get_item_count());
+}
+else
+{
+speak(item_list[menu_position-1].option+secondary);
+}
+}
+else
+{
+if (speak_position_information==true)
+{
+if(internal_tts.speak_interrupt(item_list[menu_position-1].option+secondary+". "+menu_position+" of "+get_item_count())==false)
+{
+running=false;
+return -1;
+}
+}
+else
+{
+if(internal_tts.speak_interrupt(item_list[menu_position-1].option+secondary)==false)
+{
+running=false;
+return -1;
+}
+}
+}
+}
+speak_item=false;
+}
+if(initial==true)
+{
+bool finished_intro=false;
+if(is_intro_tts==false)
+{
+if(internal_sound.is_playing()==false)
+finished_intro=true;
+}
+else
+{
+if(speech_output>0 and speech_output<5)
+{
+finished_intro=true;
+}
+else
+{
+if(internal_tts.speaking==false)
+finished_intro=true;
+}
+}
+
+if(finished_intro==true)
+{
+initial=false;
+if(item_list[menu_position-1].is_filename==true)
+{
+speak_item=true;
+continue;
+}
+else
+{
+if(speech_output>0 and speech_output<5)
+{
+if(screen_reader_speak(speech_output, item_list[menu_position-1].option)==false)
+{
+running=false;
+return -1;
+}
+}
+else
+{
+speak_item=true;
+continue;
+}
+}
+}
+}
+if (enable_numbers==true) {
+if (key_up(KEY_RSHIFT) and key_pressed(KEY_1) and get_item_count()>=1) {
+menu_position=1;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_2) and get_item_count()>=2) {
+menu_position=2;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_3) and get_item_count()>=3) {
+menu_position=3;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_4) and get_item_count()>=4) {
+menu_position=4;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_5) and get_item_count()>=5) {
+menu_position=5;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_6) and get_item_count()>=6) {
+menu_position=6;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_7) and get_item_count()>=7) {
+menu_position=7;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_8) and get_item_count()>=8) {
+menu_position=8;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_9) and get_item_count()>=9) {
+menu_position=9;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_0) and get_item_count()>=10) {
+menu_position=10;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_MINUS) and get_item_count()>=11) {
+menu_position=11;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_EQUALS) and get_item_count()>=12) {
+menu_position=12;
+speak_item=true;
+continue;
+}
+else if (key_up(KEY_RSHIFT) and key_pressed(KEY_BACK) and get_item_count()>=13) {
+menu_position=13;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_1) and get_item_count()>=14) {
+menu_position=14;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_2) and get_item_count()>=15) {
+menu_position=15;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_3) and get_item_count()>=16) {
+menu_position=16;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_4) and get_item_count()>=17) {
+menu_position=17;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_5) and get_item_count()>=18) {
+menu_position=18;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_6) and get_item_count()>=19) {
+menu_position=19;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_7) and get_item_count()>=20) {
+menu_position=20;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_8) and get_item_count()>=21) {
+menu_position=21;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_9) and get_item_count()>=22) {
+menu_position=22;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_0) and get_item_count()>=23) {
+menu_position=23;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_MINUS) and get_item_count()>=24) {
+menu_position=24;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_EQUALS) and get_item_count()>=25) {
+menu_position=25;
+speak_item=true;
+continue;
+}
+else if (key_down(KEY_RSHIFT) and key_pressed(KEY_BACK) and get_item_count()>=26) {
+menu_position=26;
+speak_item=true;
+continue;
+}
+}
+if(enable_enter==true and key_pressed(KEY_RETURN) or enable_space==true and key_pressed(KEY_SPACE))
+{
+if(menu_position!=0)
+{
+if(srcs.is_playing()) srcs.stop();
+if (item_list[menu_position-1].activate==true)
+{
+running=false;
+return menu_position;
+}
+}
+}
+if(allow_escape==true)
+{
+if(key_pressed(KEY_ESCAPE) or key_pressed(KEY_BACK))
+{
+if(srcs.is_playing()) srcs.close();
+if(internal_sound.is_playing()) internal_sound.close();
+running=false;
+return 0;
+}
+}
+if(enable_up_and_down==true and key_up(KEY_LMENU) and key_up(KEY_RMENU) and key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and key_pressed(KEY_UP)==false and up.pressing())
+{
+initial=false;
+if(menu_position==0)
+{
+menu_position=item_count;
+speak_item=true;
+continue;
+}
+if(menu_position==1)
+{
+if(wrap==true)
+{
+menu_position=item_count;
+speak_item=true;
+continue;
+}
+else
+{
+if (click_at_edge==true)
+{
+}
+if (repeat_items_at_edges==true)
+{
+speak_item=true;
+}
+continue;
+}
+}
+menu_position-=1;
+speak_item=true;
+continue;
+}
+if (enable_left_and_right==true and key_up(KEY_LMENU) and key_up(KEY_RMENU) and key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and key_pressed(KEY_LEFT)==false and left.pressing())
+{
+initial=false;
+if(menu_position==0)
+{
+menu_position=item_count;
+speak_item=true;
+continue;
+}
+if(menu_position==1)
+{
+if(wrap==true)
+{
+menu_position=item_count;
+speak_item=true;
+continue;
+}
+else
+{
+if (click_at_edge==true)
+{
+}
+if (repeat_items_at_edges==true)
+{
+speak_item=true;
+}
+continue;
+}
+}
+menu_position-=1;
+speak_item=true;
+continue;
+}
+if(enable_up_and_down==true and key_pressed(KEY_UP)==false and up.pressing() or enable_left_and_right==true and key_pressed(KEY_LEFT)==false and left.pressing())
+{
+initial=false;
+if(menu_position==0)
+{
+menu_position=item_count;
+speak_item=true;
+continue;
+}
+if(menu_position==1)
+{
+if(wrap==true)
+{
+menu_position=item_count;
+speak_item=true;
+continue;
+}
+else
+{
+if (click_at_edge==true)
+{
+}
+if (repeat_items_at_edges==true)
+{
+speak_item=true;
+}
+continue;
+}
+}
+menu_position-=1;
+speak_item=true;
+continue;
+}
+if(enable_up_and_down==true and key_pressed(KEY_DOWN)==false and down.pressing() or enable_left_and_right==true and key_pressed(KEY_RIGHT)==false and right.pressing())
+{
+initial=false;
+if(menu_position==item_count)
+{
+if(wrap==true)
+{
+menu_position=1;
+speak_item=true;
+continue;
+}
+else
+{
+if (click_at_edge==true)
+{
+}
+if (repeat_items_at_edges==true)
+{
+speak_item=true;
+}
+continue;
+}
+}
+menu_position+=1;
+speak_item=true;
+continue;
+}
+if(enable_up_and_down==true and key_up(KEY_LMENU) and key_up(KEY_RMENU) and key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and key_pressed(KEY_DOWN)==false and down.pressing())
+{
+initial=false;
+if(menu_position==item_count)
+{
+if(wrap==true)
+{
+menu_position=1;
+speak_item=true;
+continue;
+}
+else
+{
+if (click_at_edge==true)
+{
+}
+if (repeat_items_at_edges==true)
+{
+speak_item=true;
+}
+continue;
+}
+}
+menu_position+=1;
+speak_item=true;
+continue;
+}
+if (enable_left_and_right==true and key_up(KEY_LMENU) and key_up(KEY_RMENU) and key_up(KEY_LSHIFT) and key_up(KEY_RSHIFT) and key_pressed(KEY_RIGHT)==false and right.pressing())
+{
+initial=false;
+if(menu_position==item_count)
+{
+if(wrap==true)
+{
+menu_position=1;
+speak_item=true;
+continue;
+}
+else
+{
+if (click_at_edge==true)
+{
+}
+if (repeat_items_at_edges==true)
+{
+speak_item=true;
+}
+continue;
+}
+}
+menu_position+=1;
+speak_item=true;
+continue;
+}
+if(enable_home_and_end==true)
+{
+if(key_pressed(KEY_HOME))
+{
+initial=false;
+menu_position=1;
+speak_item=true;
+continue;
+}
+if(key_pressed(KEY_END))
+{
+initial=false;
+menu_position=item_count;
+speak_item=true;
+continue;
+}
+}
+wait(5);
+}
+running=false;
+return -1;
+}
+
+bool reset(bool completely)
+{
+if(running==true)
+{
+return false;
+}
+item_list.resize(0);
+if(completely==true)
+{
+letters_autospeak=true;
+letters_autoactivate=false;
+speak_letter=false;
+enable_first_letter_navigation=true;
+click_at_edge=false;
+repeat_items_at_edges=false;
+enable_space=false;
+enable_enter=true;
+speak_position_information=false;
+force_sapi=false;
+enable_up_and_down=false;
+enable_left_and_right=false;
+wrap=true;
+allow_escape=true;
+enable_home_and_end=false;
+speech_output=0;
+@tts_handle=null;
+@sound_handle=null;
+@callback_handle=null;
+}
+return true;
+}
+
+// The following is private content and should not be modified from the outside.
+
+tts_voice@ tts_handle;
+sound_object@ sound_handle;
+int speech_output;
+menu_callback@ callback_handle;
+string callback_data;
+bool running;
+int menu_position;
+dynamic_menu_item[] item_list;
+
+int add_item(string filename, bool is_filename, string name="", string key="", bool act=true, bool notgamesound=false)
+{
+if(running==true)
+{
+return -1;
+}
+int new_index=item_list.length();
+item_list.resize(new_index+1);
+item_list[new_index].option=filename;
+item_list[new_index].is_filename=is_filename;
+item_list[new_index].name=name;
+item_list[new_index].activate=act;
+item_list[new_index].notgamesound=notgamesound;
+if (key=="")
+{
+key=filename[0];
+key=string_to_lower_case(key);
+}
+item_list[new_index].letter=key;
+return new_index+1;
+}
+
+}
+
+double bconvert_to_pan(double length,double index, double range1, double range2)
+{
+if (length==1)
+return 0;
+double range=range2-range1;
+double percent=index/(length-1);
+double value=range1+range*percent;
+return value;
+}
+funcdef int menu_callback(dynamic_menu_pro@, string);

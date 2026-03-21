@@ -1,0 +1,128 @@
+bool dmoving;
+door@[] doors(0);
+class door
+{
+string ds, ds2, ds3, ds4;
+int doorsound, doorsound2;
+int mindx;
+int maxdx;
+int mindy;
+int maxdy;
+int mindz;
+int maxdz;
+int finishx;
+int finishy;
+int finishz;
+string text;
+int movetime=150;
+bool moving;
+bool aimoving;
+timer movetimer;
+door(int mindoorx, int maxdoorx, int mindoory, int maxdoory, int mindoorz, int maxdoorz, int doorfinishx, int doorfinishy, int doorfinishz, int speed, string doorsnd, string doorsnd2, string doorsnd3, string doorsnd4, string doortext)
+{
+ds=doorsnd;
+ds2=doorsnd2;
+ds3=doorsnd3;
+ds4=doorsnd4;
+mindx=mindoorx;
+maxdx=maxdoorx;
+mindy=mindoory;
+maxdy=maxdoory;
+mindz=mindoorz;
+maxdz=maxdoorz;
+finishx=doorfinishx;
+finishy=doorfinishy;
+finishz=doorfinishz;
+movetime=speed;
+text=doortext;
+if(ds!="silence") doorsound=p.play_3d(ds, me.x, me.y, me.z, mindoorx, mindoory, mindoorz, facing,0,0,0,0,0,0,0,100,0,0,true);
+p.update_sound_3d(doorsound, mindoorx, mindoory, mindoorz);
+p.update_sound_range_3d(doorsound, 0, maxdoorx-mindoorx, 0, maxdoory-mindoory, 0, maxdoorz-mindoorz);
+}
+}
+void doorloop()
+{
+for(uint i=0; i<doors.length(); i++)
+{
+p.update_sound_3d(doors[i].doorsound, doors[i].mindx, doors[i].mindy, doors[i].mindz);
+if (doors[i].moving==true and doors[i].movetime==-1)
+{
+me.x=doors[i].finishx;
+me.y=doors[i].finishy;
+me.z=doors[i].finishz;
+}
+else
+{
+if (doors[i].moving==true and doors[i].movetimer.elapsed>=movetime)
+{
+doors[i].movetimer.restart();
+if (me.x>doors[i].finishx)
+{
+me.x-=1;
+}
+else if (me.x<doors[i].finishx)
+{
+me.x+=1;
+}
+if (me.y>doors[i].finishy)
+{
+me.y-=1;
+}
+else if (me.y<doors[i].finishy)
+{
+me.y+=1;
+}
+if (me.z>doors[i].finishz)
+{
+me.z-=1;
+}
+else if (me.z<doors[i].finishz)
+{
+me.z+=1;
+}
+}
+}
+if (doors[i].finishx==me.x and doors[i].finishy==me.y and doors[i].finishz==me.z and doors[i].moving==true)
+{
+if (doors[i].ds2!="silence") p.destroy_sound(doors[i].doorsound2);
+if(doors[i].ds4!="silence") p.play_stationary(doors[i].ds4,0,100,0,0,false);
+can_move=true;
+dmoving=false;
+doors[i].moving=false;
+}
+}
+}
+void spawn_door(int mindoorx, int maxdoorx, int mindoory, int maxdoory, int mindoorz, int maxdoorz, int finishx, int finishy, int finishz, int speed, string doorsnd, string doorsnd2, string doorsnd3, string doorsnd4, string doortext)
+{
+door door1(mindoorx, maxdoorx, mindoory, maxdoory, mindoorz, maxdoorz,finishx, finishy, finishz, speed, doorsnd, doorsnd2, doorsnd3, doorsnd4, doortext);
+doors.insert_last(door1);
+}
+void destroy_door(int d)
+{
+if(doors[d].moving==true)
+{
+me.x=random(doors[d].mindx,doors[d].maxdx);
+p.destroy_sound(doors[d].doorsound2);
+can_move=true;
+dmoving=false;
+doors[d].moving=false;
+}
+p.destroy_sound(doors[d].doorsound);
+doors.remove_at(d);
+}
+void destroy_all_doors()
+{
+for(uint i=0; i<doors.length(); i++)
+{
+if(doors[i].moving==true)
+{
+me.x=random(doors[i].mindx,doors[i].maxdx);
+p.destroy_sound(doors[i].doorsound2);
+can_move=true;
+dmoving=false;
+doors[i].moving=false;
+}
+p.destroy_sound(doors[i].doorsound);
+}
+doors.resize(0);
+}

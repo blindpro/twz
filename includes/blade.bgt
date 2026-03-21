@@ -1,0 +1,69 @@
+blade@[] blades(0);
+class blade
+{
+int x, y, z, bladetime, bladeingsound, damage;
+string bladesound, bladehitsound;
+timer bladetimer;
+blade(int bx, int by, int bz, int bbladetime, int bdamage, string bbladesound, string bbladehitsound)
+{
+x=bx;
+y=by;
+z=bz;
+bladetime=bbladetime;
+damage=bdamage;
+bladesound=bbladesound;
+bladehitsound=bbladehitsound;
+p.play_3d("bladedrop"+random(1,2),me.x,me.y,me.z,x,y,z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+
+}
+}
+void bladeloop()
+{
+for (uint i=0; i<blades.length(); i++)
+{
+if (blades[i].bladetimer.elapsed>=blades[i].bladetime)
+{
+blades[i].bladetimer.restart();
+if(blades[i].bladesound!="silence") blades[i].bladeingsound=p.play_3d(blades[i].bladesound, me.x, me.y, me.z, blades[i].x, blades[i].y, blades[i].z, facing,0,0,0,0,0,0,0,100,0,0,false);
+if(me.x==blades[i].x and me.y==blades[i].y and me.z==blades[i].z)
+{
+p.play_stationary(blades[i].bladehitsound,0,100,0,0,false);
+health-=blades[i].damage;
+}
+for (uint i2=0; i2<enemies.length(); i2++)
+{
+if(enemies[i2].x==blades[i].x and enemies[i2].y==blades[i].y and enemies[i2].z==blades[i].z)
+{
+p.play_3d(blades[i].bladehitsound,me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i2].health-=blades[i].damage;
+enemies[i2].hitby="a blade";
+enemies[i2].hitby2="a blade";
+enemies[i2].hitbyweapon="";
+}
+}
+}
+if(jumping and me.x==blades[i].x and me.y==blades[i].y)
+{
+p.play_stationary(blades[i].bladehitsound,0,100,0,0,false);
+health-=blades[i].damage;
+}
+}
+}
+void spawn_blade(int x, int y, int z, int bladetime, int damage, string bladesound, string bladehitsound)
+{
+blade b(x, y, z, bladetime, damage, bladesound, bladehitsound);
+blades.insert_last(b);
+}
+void destroy_blade(int v)
+{
+p.destroy_sound(blades[v].bladeingsound);
+blades.remove_at(v);
+}
+void destroy_all_blades()
+{
+for(uint i=0; i<blades.length(); i++)
+{
+p.destroy_sound(blades[i].bladeingsound);
+}
+blades.resize(0);
+}

@@ -1,0 +1,15 @@
+void cfu()
+{
+string latest=get_from_url("https://example.com/version.dat");
+latest=string_decrypt(latest,"DpXkiHmGEuUXIb23QZXor9MCPOxG1xpY");
+double lv=string_to_number(latest);
+string[] yourversion=string_split(version," ",true);
+double yv=string_to_number(yourversion[0]);
+if (yv<lv)
+{
+speak("updating the war zone to version "+latest+", please wait");
+run("C:\\Windows\\System32\\cmd.exe",string_trim_right(get_script_path(),8)+"/libraries/aria2c.exe https://example.com/twz.zip", true, true);
+run("C:\\Windows\\System32\\cmd.exe","/c "+string_trim_right(get_script_path(),8)+"/twz.zip",true,true);
+exit();
+}
+}

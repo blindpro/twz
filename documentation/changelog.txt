@@ -1,0 +1,199 @@
+New in version 0.3
+Now changing volume of a music is faster than the past
+Added 59 new enemies
+You can no longer use menus, lists, and stores while using item grabbers or placing turrets
+Added ask to exit confirmation apon exit
+Added a translation system. Languages can be selected in the menu that is in the game
+Added language updater
+Languages can now be selected when launching the game for the first time
+Added 23 new weapons: browning m2 heavy machinegun, chainsaw, colt m9, colt m19, long chain, mg10, mg11, mg12, mg13, mg14, mg15, mg16, m10 machinegun, m16 machinegun, m28 mini machinegun, m60 machinegun, magnum revolver, minigun v2, mlk 207 combat rifle, modern sub machine gun carbine, p3 hunting shotgun, paintball marker, pcs handgun
+Fixed some positional calculations
+Added hand to hand combo system
+Fixed mine spawning
+Corrected the zone of the main map from main aria to main area
+Fixed distance sounds
+Now if you destroy an aircraft, a helicopter or a tank people that are there will die
+Added cheat mode
+Added the following drivable vehicles: bicycle, generic motorcycle, frog motorcycle, ducati street fighter, onda cbr 600, yamaha r6, aprilia v4, aprilia rs660, ducati diavel, yamaha off road, kawasaki hipersport, kawasaki adventure tourer, ducati scrumbler, bmw off road, motor boat, sky racer, ford, sorento, dogan slx, grayhound bus, m60 tank, tank, truck, 4 by 4 jeep, dodge charger, doom buggy, ford pickup truck, mlk mission cruiser, muscle car and aircraft
+Added sandbags
+Enemies can now put sandbags to the ground
+Added vehicle kits
+Added enemy grabbers
+Added enemy callers
+Enemies can now use enemy grabbers and enemy callers
+Recoded item usage method of enemies
+Now when an enemy dies you receive all of their inventory
+You can no longer use multipal item grabbers and enemy grabbers at once
+Enemies can now detect walls
+You can now disable the logo at startup in the menu
+Added Magnetic shoes
+Speed drink is no longer in the store
+Fixed finding rpgs in the ground
+New in version 0.29
+Vehicles and buses will now behave normally except when you are on them
+Added doors
+Now if you destroy a police car or a vehicle their passengers will die like buses thanks to Erfan for their suggestion
+Fixed getting out of a vehicle
+You can now make new maps via the builder menu
+Now while your diing everything will be closed
+Fixed kill messages of an enemy being killed by a blade
+New in version 0.28
+Added a music system for maps
+Added travelpoints
+Added stores to maps
+From now on blades will be automaticly spawned in the main map
+Added buses. Thanks to erfan for their suggestion
+Slowed down vehicle's speed a bit
+You can now get in to buses
+New in version 0.27
+Recoded the map system
+Added volume, pitch, and speed to tiles and sound sorces
+ Added an ability to being tracked to tiles and zones
+Added walls
+Recoded the background music
+Recoded sound sources
+Added ambiences
+New in version 0.26
+Some item types can now be diagnosed with their sounds
+Some item types can no longer break thanks to Erfan for their suggestion
+Enemies can now pick up coins from the ground
+Coin spawning chance has been decreased as it's not a breakable item anymore
+Added zones
+Added builder menu. You can access it by pressing B. Thanks to Erfan for their suggestion.
+Added a new buffer: zones
+New in version 0.25
+Now when enemies are burned or using item grabbers and dead and are falling to the ground you won't hear any sounds from them
+You can no longer draw a weapon while reloading another one
+Fixed store purchases
+Slightly redesigned the updater
+Fixed enemies
+Recoded kill messages
+Fires can now damage turrets
+New in version 0.24
+Fixed mine spawning
+Added new enemies
+Fixed vehicles
+Now if you kill an enemy with an explosion  or your turret kills something it will be counted as your kills
+Machineguns and turrets now have some more damage, turrets also have some more range as these had no usage with a little damage
+Now you can't fire your weapon while using an item grabber
+Added fire extinguishers. Purchasable from the store. Thanks to Erfan for their suggestion
+New in version 0.23
+Removed fake version of health pills and speed drinks for enemies
+Polices can no longer use unlimited timebombs
+Fixed turrets
+Fixed item grabbers
+Fixed burning
+Fixed the game crashing bug
+Added blades
+New in version 0.22
+You no longer get feet or fists of an enemy when you kill them
+Explosives can now shoot whatever is in their range rather than just one object
+Fixed the sound system
+Aircrafts can now use all explosives
+Fixed molotov cocktails wrongly being diagnosed as a weapon in the weapon list
+Fixed grenades wrongly being diagnosed as grenade launchers
+Enemies can now pick up and throw grenades
+New in version 0.21
+Fixed the inventory system
+Added turrets
+Added item grabbers
+Enemies, polices, tanks, aircrafts, and helicopters can now use timebombs, mines, molotov cocktails, and item grabbers. Enemies can also use turrets
+Removed fake version of health pills and speed drinks
+Fixed buffers
+Decreased damage of machineguns to balance the game
+New in version 0.2
+Recoded weapon ammos
+Added new weapons
+Added new enemies
+Bullet shells and Bullet wizdems are now based on bullet types
+Fixed playing sounds
+Enemy falling sounds after death are now different
+Added timebombs
+Added mines
+Timebombs can now cause fires
+Added two new buffers: items, and misc
+Grenade pulling is now faster
+Item using is now faster
+Fixed distance sounds
+Replaced the ak49 with aa12 due to it's annoying sound 
+Added coins
+Added stores
+Added molotov cocktails
+You'll now be randomly spawned in the map when you start the game
+Now when you die the game will entirely stop
+You can now check the store location by pressing Shift C
+New in version 0.19
+Now when you start the game you don't have all the weapons. You need to collect them from the ground
+Now when enemies die their items will spawn to the ground
+Now to pick up items you should press enter
+Music volume changing is now faster
+Added nicknames for maps
+Added kill messages
+Added vehicles. You can press enter on them to get in to them
+New in version 0.18
+Fixed the updater
+Added an inventory system
+Added buffers
+Recoded the game menu
+Added clip copy. You can press f12 to copy the last spoken text in to your clipboard
+Now you should use items from your inventory rather than automaticly being used by being picked up
+Grenades can now be pulled before being throwed. Hold backspace to pull and release it to throw them
+New in version 0.17
+You can no longer switch to another weapon via the weapon list while reloading the current one
+Fixed the cartridge spawning for melee weapons bug
+Fixed item picking range thanks to aidin for the bug report
+Modified items a bit
+Game volume and music volume will now save apon exit
+Added parrying for swords
+Balanced melee weapons shooting speed
+New in version 0.16
+Fixed playing sounds
+Added tanks
+Added the following explosives: grenade launcher, rocket launcher, missile launcher, rpg launcher, rpg7, and two cannons
+Added aircrafts
+Added helecopters
+You can now press escape to cancel the operation when posting or viewing scores
+Fixed weapons
+New in version 0.15
+Added much more rotating abilities. 180 degrees by pressing alt q and alt e, 90 degrees by pressing shift q and shift e, and one by one degree by pressing alt shift q and alt shift e
+Added shields. Collectable from the ground
+Enemies can now wear shields
+Added playtime. You can press T to check it
+Added weapon list. Accessable by pressing W
+Added polices
+Fixed distance sounds
+New in version 0.14
+Added new weapons
+Recoded walking
+Redesigned the map system
+Now enemies will spawn based on the map rather than a predefined location
+Enemies can now climb up and down
+Fixed footstep sounds of enemies when their walking
+Added weapon pings. Togglable by pressing f2
+New in version 0.13
+Limited starting cartridges as they can now be found in the map
+Added new enemies
+Added death and pain sounds for the main character
+Fixed fists
+Fixed the word cartridge rather than cartridges for when you have only one cartridge
+Enemies can now switch between their weapons if needed
+Fixed walking speed
+New in version 0.12
+Added a menu which can be accessed by pressing f1
+Added scoreboards. Accessable from the menu. Thanks to Erfan for their suggestion
+Added data saving
+Added jaws support
+Now when you run the war zone for the first time you'll be notified to download the VC_redist.x86 file from microsoft's website for dll files to work correctly. Download link: https://download.visualstudio.microsoft.com/download/pr/06ed1d94-3f28-47a5-8025-e7bf9da634da/2ACBFE92157C1CF1A7B524A9325824046D83DBFA3FEB1CBD4DD02A42E020F77C/VC_redist.x86.exe
+Fixed enemies
+Added items
+New in version 0.11
+Added whizdom sound ability for bullets
+You can now turn 45 degrees by pressing Q and E. To check your facing, press F
+You can now check your kills by pressing K
+Added beacon ability for enemies
+Added some new weapons
+You can now change the game volume by pressing home and end. To change background music's volume, press shift home and end
+Added an updater
+New in version 0.1
+Released the first version on Thursday, December 01, 2022
+Started working in the game on Wednesday, November 30, 2022

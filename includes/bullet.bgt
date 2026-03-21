@@ -1,0 +1,363 @@
+bullet@[] bullets(0);
+class bullet
+{
+string owner="me";
+string owner2="me";
+int distance;
+double x, y, z;
+int facing;
+int range;
+int damage;
+int speed=1;
+timer speedtimer;
+int weapon;
+sound_object loop;
+int spread=2;
+bool hit=false;
+bullet(int d, int r, int s1, int s2, int s3, int fa, int sp, string own="me", int we=w, string own2="")
+{
+weapon=we;
+owner=own;
+owner2=own2;
+speed=sp;
+facing=fa;
+x=s1;
+y=s2;
+z=s3;
+damage=d;
+range=r;
+if(weapons[weapon].name=="molotov_cocktail") p.play_3d("molotov_cocktailthrow",me.x,me.y,me.z,x,y,z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(weapons[weapon].name=="grenade_launcher" or weapons[weapon].name=="grenade")
+{
+loop.load_looped("grenaderoll");
+loop.play();
+}
+else if(weapons[weapon].name=="rocket_launcher")
+{
+loop.load_looped("rocketwarn"+random(1,2));
+loop.play();
+}
+else if(weapons[weapon].name=="missile_launcher")
+{
+loop.load_looped("missileloop"+random(1,3));
+loop.play();
+}
+else if(weapons[weapon].name=="rpg_launcher" or weapons[weapon].name=="rpg7")
+{
+loop.load_looped("rpgloop");
+loop.play();
+}
+else if(weapons[weapon].name=="cannon" or weapons[weapon].name=="cannon2")
+{
+loop.load_looped("cannon_ballloop");
+loop.play();
+}
+}
+}
+void bulletloop()
+{
+for (uint i=0; i<bullets.length(); i++)
+{
+if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade" or weapons[bullets[i].weapon].name=="rocket_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2") position_sound_3d(bullets[i].loop, me.x, me.y, me.z, bullets[i].x, bullets[i].y, bullets[i].z, facing, 10, 5, 5, 0, 100, 0);
+if(bullets[i].speedtimer.elapsed>bullets[i].speed)
+{
+bullets[i].speedtimer.restart();
+vector bull;
+bull=move(bullets[i].x, bullets[i].y, bullets[i].z, bullets[i].facing, 0, 0.0, 0);
+bullets[i].x=bull.x;
+bullets[i].y=bull.y;
+bullets[i].z=bull.z;
+bullets[i].distance++;
+if (bullets[i].distance>=bullets[i].range)
+{
+if(weapons[bullets[i].weapon].hasammo!=false)
+{
+if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade" or weapons[bullets[i].weapon].name=="rocket_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7")
+{
+p.play_3d("rocketmiss",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else if(weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2")
+{
+p.play_3d("cannon_balldrop",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else if(weapons[bullets[i].weapon].name=="molotov_cocktail")
+{
+p.play_3d("molotov_cocktailland",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+spawn_fire(bullets[i].x,bullets[i].y,bullets[i].z,bullets[i].owner2);
+}
+else
+{
+if(weapons[bullets[i].weapon].ammotype=="5.56mm_ammo" or weapons[bullets[i].weapon].ammotype=="5.45mm_ammo" or weapons[bullets[i].weapon].ammotype=="7.62mm_ammo") p.play_3d("bulletwhiz"+random(1,8),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].ammotype=="9mm_ammo") p.play_3d("bullet_miss_"+random(1,2),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].ammotype=="arrow") p.play_3d("arrowmoving",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else p.play_3d("bullet_miss_"+random(3,4),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(weapons[bullets[i].weapon].ammotype=="arrow") p.play_3d("arrowdrop",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].ammotype=="shotgun_shell") p.play_3d("shotgunshell"+random(1,7),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].ammotype=="5.45mm_ammo") p.play_3d("7.62mm_ammo"+random(1,2),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].ammotype=="paintball") p.play_3d("paintballmiss",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else p.play_3d(weapons[bullets[i].weapon].ammotype+random(1,2),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+}
+if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade" or weapons[bullets[i].weapon].name=="rocket_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2") bullets[i].loop.close();
+@bullets[i]=null;
+bullets.remove_at(i);
+break;
+}
+string surface=get_tile_at(bullets[i].x,bullets[i].y,bullets[i].z);
+if (string_contains(surface,"wall",1)>-1)
+{
+if(weapons[bullets[i].weapon].name=="fists" or weapons[bullets[i].weapon].name=="feet" or weapons[bullets[i].weapon].name=="bow" or weapons[bullets[i].weapon].name=="short_bow" or weapons[bullets[i].weapon].name=="long_bow") p.play_3d(weapons[bullets[i].weapon].name+"wall",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].hasammo==false) p.play_3d("meleewall",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2") p.play_3d("cannon_ballbounce",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade" or weapons[bullets[i].weapon].name=="rocket_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2") p.play_3d("grenade_launcherwall",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="molotov_cocktail")
+{
+p.play_3d("molotov_cocktailland",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+spawn_fire(bullets[i].x,bullets[i].y,bullets[i].z,bullets[i].owner2);
+}
+else p.play_3d("rico"+random(1,50),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade" or weapons[bullets[i].weapon].name=="rocket_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2") bullets[i].loop.close();
+@bullets[i]=null;
+bullets.remove_at(i);
+break;
+}
+if(bullets[i].hit==false)
+{
+if(inbicycle==false and invehicle==false and get_3d_distance(bullets[i].x, bullets[i].y, bullets[i].z, me.x, me.y, me.z)<=bullets[i].spread and bullets[i].owner!="me")
+{
+if(string_contains(weapons[bullets[i].weapon].name,"sword",1)>-1 and string_contains(weapons[w].name,"sword",1)>-1)
+{
+int n=random(1,100);
+if(n>25)
+{
+p.play_3d("sword_block"+random(1,12),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+return;
+}
+}
+if(shielded and shieldshots>0)
+{
+p.play_3d("shieldhit"+random(1,10),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade" or weapons[bullets[i].weapon].name=="rocket_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2") shieldshots=0;
+else shieldshots--;
+}
+else
+{
+if(weapons[bullets[i].weapon].name=="fists") p.play_3d("fistshit"+random(1,37),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="feet") p.play_3d("feethit"+random(1,13),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="knife" or weapons[bullets[i].weapon].name=="blake_sword") p.play_3d(weapons[bullets[i].weapon].name+"hit"+random(1,4),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="sword") p.play_3d("swordhit"+random(1,6),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="axe" or weapons[bullets[i].weapon].name=="hammer" or weapons[bullets[i].weapon].name=="spear" or weapons[bullets[i].weapon].name=="short_bow" or weapons[bullets[i].weapon].name=="long_bow" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="long_chain" or weapons[bullets[i].weapon].name=="chainsaw") p.play_3d(weapons[bullets[i].weapon].name+"hit",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="long_knife" or weapons[bullets[i].weapon].name=="machete" or weapons[bullets[i].weapon].name=="short_sword" or weapons[bullets[i].weapon].name=="long_sword" or weapons[bullets[i].weapon].name=="bow" or weapons[bullets[i].weapon].name=="cannon2" or weapons[bullets[i].weapon].name=="light_punch" or weapons[bullets[i].weapon].name=="punch" or weapons[bullets[i].weapon].name=="heavy_punch" or weapons[bullets[i].weapon].name=="light_kick" or weapons[bullets[i].weapon].name=="kick" or weapons[bullets[i].weapon].name=="heavy_kick" or weapons[bullets[i].weapon].name=="grab" or weapons[bullets[i].weapon].name=="throw" or weapons[bullets[i].weapon].name=="slam") p.play_3d(weapons[bullets[i].weapon].name+"hit"+random(1,3),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade") p.play_3d("grenade_explode"+random(1,6),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") p.play_3d("rocketexplode",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="missile_launcher") p.play_3d("missileexplode",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") p.play_3d("rpgexplode",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="molotov_cocktail")
+{
+p.play_3d("molotov_cocktailland",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+burned=true;
+}
+else p.play_3d("hit"+random(1,5),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+p.play_stationary("pain"+random(1,5),0,100,0,0,false);
+if(weapons[bullets[i].weapon].name=="cannon2") p.play_3d(weapons[bullets[i].weapon].name+"hitdist",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") p.play_3d("rocketexplodedist",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") p.play_3d("rpgexplodedist",me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+health-=bullets[i].damage;
+}
+if(bullets[i].weapon<45 or bullets[i].weapon==52) bullets[i].hit=true;
+}
+}
+if(bullets[i].hit==false)
+{
+for (uint i2=0; i2<objs.length(); i2++)
+{
+if(get_3d_distance(bullets[i].x, bullets[i].y, bullets[i].z, objs[i2].x, objs[i2].y, objs[i2].z)<=bullets[i].spread and objs[i2].breakable==true)
+{
+if(weapons[bullets[i].weapon].name=="fists") p.play_3d("fistshit"+random(1,37),me.x,me.y,me.z,objs[i2].x,objs[i2].y,objs[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+p.play_3d("obj_break"+random(1,6),me.x,me.y,me.z,objs[i2].x,objs[i2].y,objs[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(weaponpings==1 and bullets[i].owner=="me") p.play_stationary("weaponping",0,100,0,0,false);
+objs.remove_at(i2);
+if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade" or weapons[bullets[i].weapon].name=="rocket_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2") bullets[i].loop.close();
+if(bullets[i].weapon<45 or bullets[i].weapon==52) bullets[i].hit=true;
+}
+}
+}
+if(bullets[i].hit==false)
+{
+for (uint i2=0; i2<enemies.length(); i2++)
+{
+if(get_3d_distance(bullets[i].x, bullets[i].y, bullets[i].z, enemies[i2].x, enemies[i2].y, enemies[i2].z)<=bullets[i].spread and enemies[i2].dead==false and bullets[i].owner!=i2 and bullets[i].owner!=enemies[i2].ride)
+{
+if(weaponpings==1 and bullets[i].owner=="me") p.play_stationary("weaponping",0,100,0,0,false);
+if(string_contains(weapons[bullets[i].weapon].name,"sword",1)>-1 and string_contains(weapons[enemies[i2].weapon].name,"sword",1)>-1)
+{
+int n=random(1,100);
+if(n>25)
+{
+p.play_3d("sword_block"+random(1,12),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+return;
+}
+}
+if(enemies[i2].shielded==1 and enemies[i2].shieldshots>0 and weapons[bullets[i].weapon].name!="grenade_launcher" and weapons[bullets[i].weapon].name!="grenade" and weapons[bullets[i].weapon].name!="rocket_launcher" and weapons[bullets[i].weapon].name!="missile_launcher" and weapons[bullets[i].weapon].name!="rpg_launcher" and weapons[bullets[i].weapon].name!="rpg7" and weapons[bullets[i].weapon].name!="cannon" and weapons[bullets[i].weapon].name!="cannon2" and weapons[bullets[i].weapon].name!="molotov_cocktail")
+{
+p.play_3d("shieldhit"+random(1,10),enemies[i2].x,enemies[i2].y,enemies[i2].z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i2].shieldshots--;
+}
+else
+{
+if(enemies[i2].type>=25)
+{
+if(weapons[bullets[i].weapon].name=="fists") p.play_3d("fistshit"+random(1,37),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="feet") p.play_3d("feethit"+random(1,13),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="long_chain" or weapons[bullets[i].weapon].name=="chainsaw") p.play_3d(weapons[bullets[i].weapon].name+"hit",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="long_knife" or weapons[bullets[i].weapon].name=="machete" or weapons[bullets[i].weapon].name=="short_sword" or weapons[bullets[i].weapon].name=="long_sword" or weapons[bullets[i].weapon].name=="bow" or weapons[bullets[i].weapon].name=="cannon2" or weapons[bullets[i].weapon].name=="light_punch" or weapons[bullets[i].weapon].name=="punch" or weapons[bullets[i].weapon].name=="heavy_punch" or weapons[bullets[i].weapon].name=="light_kick" or weapons[bullets[i].weapon].name=="kick" or weapons[bullets[i].weapon].name=="heavy_kick" or weapons[bullets[i].weapon].name=="grab" or weapons[bullets[i].weapon].name=="throw" or weapons[bullets[i].weapon].name=="slam") p.play_3d(weapons[bullets[i].weapon].name+"hit"+random(1,3),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade") p.play_3d("grenade_explode"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") p.play_3d("rocketexplode",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="missile_launcher") p.play_3d("missileexplode",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") p.play_3d("rpgexplode",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="molotov_cocktail")
+{
+p.play_3d("molotov_cocktailland",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i2].burned=true;
+}
+}
+if(enemies[i2].type==1) p.play_3d("policehit"+random(1,7),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==2) p.play_3d("tankhit"+random(1,5),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==3) p.play_3d("aircrafthit"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==4) p.play_3d("helicopterhit"+random(1,2),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(enemies[i2].type==5)
+{
+int n=random(1,2);
+if(n==1) p.play_3d("aircrafthit"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else p.play_3d("policehit"+random(1,5),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+else if(enemies[i2].type==6) p.play_3d("bushit"+random(1,2),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else
+{
+if(weapons[bullets[i].weapon].name=="fists") p.play_3d("fistshit"+random(1,37),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="feet") p.play_3d("feethit"+random(1,13),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="knife" or weapons[bullets[i].weapon].name=="blake_sword") p.play_3d(weapons[bullets[i].weapon].name+"hit"+random(1,4),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="sword") p.play_3d("swordhit"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="axe" or weapons[bullets[i].weapon].name=="hammer" or weapons[bullets[i].weapon].name=="spear" or weapons[bullets[i].weapon].name=="short_bow" or weapons[bullets[i].weapon].name=="long_bow" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="long_chain" or weapons[bullets[i].weapon].name=="chainsaw") p.play_3d(weapons[bullets[i].weapon].name+"hit",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="long_knife" or weapons[bullets[i].weapon].name=="machete" or weapons[bullets[i].weapon].name=="short_sword" or weapons[bullets[i].weapon].name=="long_sword" or weapons[bullets[i].weapon].name=="bow" or weapons[bullets[i].weapon].name=="cannon2" or weapons[bullets[i].weapon].name=="light_punch" or weapons[bullets[i].weapon].name=="punch" or weapons[bullets[i].weapon].name=="heavy_punch" or weapons[bullets[i].weapon].name=="light_kick" or weapons[bullets[i].weapon].name=="kick" or weapons[bullets[i].weapon].name=="heavy_kick" or weapons[bullets[i].weapon].name=="grab" or weapons[bullets[i].weapon].name=="throw" or weapons[bullets[i].weapon].name=="slam") p.play_3d(weapons[bullets[i].weapon].name+"hit"+random(1,3),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade") p.play_3d("grenade_explode"+random(1,6),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") p.play_3d("rocketexplode",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="missile_launcher") p.play_3d("missileexplode",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") p.play_3d("rpgexplode",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="molotov_cocktail")
+{
+p.play_3d("molotov_cocktailland",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i2].burned=true;
+}
+else p.play_3d("hit"+random(1,5),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+int t=enemies[i2].type-6;
+p.play_3d("enemy"+t+"pain"+random(1,3),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+}
+if(weapons[bullets[i].weapon].name=="cannon2") distpool.play_3d(weapons[bullets[i].weapon].name+"hitdist",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") distpool.play_3d("rocketexplodedist",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") distpool.play_3d("rpgexplodedist",me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+enemies[i2].health-=bullets[i].damage;
+enemies[i2].hitby=bullets[i].owner;
+enemies[i2].hitby2=(bullets[i].owner=="me"?"me":bullets[i].owner2);
+enemies[i2].hitbyweapon=weapons[bullets[i].weapon].name;
+}
+if (bullets[i].owner==-1)
+{
+enemies[i2].dx=me.x;
+enemies[i2].dy=me.y;
+enemies[i2].dz=me.z;
+}
+enemies[i2].health-=bullets[i].damage;
+enemies[i2].hitby=bullets[i].owner;
+enemies[i2].hitby2=(bullets[i].owner=="me"?"me":bullets[i].owner2);
+enemies[i2].hitbyweapon=weapons[bullets[i].weapon].name;
+if(bullets[i].weapon<45 or bullets[i].weapon==52 or enemies[i2].type>=25) bullets[i].hit=true;
+}
+}
+}
+if(bullets[i].hit==false)
+{
+for (uint i2=0; i2<turrets.length(); i2++)
+{
+if(get_3d_distance(bullets[i].x, bullets[i].y, bullets[i].z, turrets[i2].x, turrets[i2].y, turrets[i2].z)<=bullets[i].spread)
+{
+if(weaponpings==1 and bullets[i].owner=="me") p.play_stationary("weaponping",0,100,0,0,false);
+if(weapons[bullets[i].weapon].name=="fists") p.play_3d("fistshit"+random(1,37),me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="feet") p.play_3d("feethit"+random(1,13),me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="long_chain" or weapons[bullets[i].weapon].name=="chainsaw") p.play_3d(weapons[bullets[i].weapon].name+"hit",me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="long_knife" or weapons[bullets[i].weapon].name=="machete" or weapons[bullets[i].weapon].name=="short_sword" or weapons[bullets[i].weapon].name=="long_sword" or weapons[bullets[i].weapon].name=="bow" or weapons[bullets[i].weapon].name=="cannon2" or weapons[bullets[i].weapon].name=="light_punch" or weapons[bullets[i].weapon].name=="punch" or weapons[bullets[i].weapon].name=="heavy_punch" or weapons[bullets[i].weapon].name=="light_kick" or weapons[bullets[i].weapon].name=="kick" or weapons[bullets[i].weapon].name=="heavy_kick" or weapons[bullets[i].weapon].name=="grab" or weapons[bullets[i].weapon].name=="throw" or weapons[bullets[i].weapon].name=="slam") p.play_3d(weapons[bullets[i].weapon].name+"hit"+random(1,3),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade") p.play_3d("grenade_explode"+random(1,6),me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") p.play_3d("rocketexplode",me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="missile_launcher") p.play_3d("missileexplode",me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") p.play_3d("rpgexplode",me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="molotov_cocktail")
+{
+p.play_3d("molotov_cocktailland",me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+turrets[i2].burned=true;
+}
+p.play_3d("turrethit"+random(1,3),me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(weapons[bullets[i].weapon].name=="cannon2") distpool.play_3d(weapons[bullets[i].weapon].name+"hitdist",me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") distpool.play_3d("rocketexplodedist",me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") distpool.play_3d("rpgexplodedist",me.x,me.y,me.z,turrets[i2].x,turrets[i2].y,turrets[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+turrets[i2].health-=bullets[i].damage;
+turrets[i2].hitby=(bullets[i].owner=="me"?"me":bullets[i].owner2);
+turrets[i2].hitbyweapon=weapons[bullets[i].weapon].name;
+if(bullets[i].weapon<45 or bullets[i].weapon==52) bullets[i].hit=true;
+}
+}
+}
+if(bullets[i].hit==false)
+{
+for (uint i2=0; i2<sandbags.length(); i2++)
+{
+if(get_3d_distance(bullets[i].x, bullets[i].y, bullets[i].z, sandbags[i2].x, sandbags[i2].y, sandbags[i2].z)<=bullets[i].spread)
+{
+if(weaponpings==1 and bullets[i].owner=="me") p.play_stationary("weaponping",0,100,0,0,false);
+if(weapons[bullets[i].weapon].name=="fists") p.play_3d("fistshit"+random(1,37),me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="feet") p.play_3d("feethit"+random(1,13),me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="long_chain" or weapons[bullets[i].weapon].name=="chainsaw") p.play_3d(weapons[bullets[i].weapon].name+"hit",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="long_knife" or weapons[bullets[i].weapon].name=="machete" or weapons[bullets[i].weapon].name=="short_sword" or weapons[bullets[i].weapon].name=="long_sword" or weapons[bullets[i].weapon].name=="bow" or weapons[bullets[i].weapon].name=="cannon2" or weapons[bullets[i].weapon].name=="light_punch" or weapons[bullets[i].weapon].name=="punch" or weapons[bullets[i].weapon].name=="heavy_punch" or weapons[bullets[i].weapon].name=="light_kick" or weapons[bullets[i].weapon].name=="kick" or weapons[bullets[i].weapon].name=="heavy_kick" or weapons[bullets[i].weapon].name=="grab" or weapons[bullets[i].weapon].name=="throw" or weapons[bullets[i].weapon].name=="slam") p.play_3d(weapons[bullets[i].weapon].name+"hit"+random(1,3),me.x,me.y,me.z,bullets[i].x,bullets[i].y,bullets[i].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade") p.play_3d("grenade_explode"+random(1,6),me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") p.play_3d("rocketexplode",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="missile_launcher") p.play_3d("missileexplode",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") p.play_3d("rpgexplode",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="molotov_cocktail")
+{
+p.play_3d("molotov_cocktailland",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+sandbags[i2].burned=true;
+}
+if(weapons[bullets[i].weapon].hasammo==false) p.play_3d("sandbag_hit",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else p.play_3d("sandbag_bullet"+random(1,10),me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+if(weapons[bullets[i].weapon].name=="cannon2") distpool.play_3d(weapons[bullets[i].weapon].name+"hitdist",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rocket_launcher") distpool.play_3d("rocketexplodedist",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+else if(weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7") distpool.play_3d("rpgexplodedist",me.x,me.y,me.z,sandbags[i2].x,sandbags[i2].y,sandbags[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+sandbags[i2].health-=bullets[i].damage;
+sandbags[i2].hitby=(bullets[i].owner=="me"?"me":bullets[i].owner2);
+sandbags[i2].hitbyweapon=weapons[bullets[i].weapon].name;
+if(bullets[i].weapon<45 or bullets[i].weapon==52) bullets[i].hit=true;
+}
+}
+}
+if(bullets[i].hit)
+{
+if(weapons[bullets[i].weapon].name=="grenade_launcher" or weapons[bullets[i].weapon].name=="grenade" or weapons[bullets[i].weapon].name=="rocket_launcher" or weapons[bullets[i].weapon].name=="missile_launcher" or weapons[bullets[i].weapon].name=="rpg_launcher" or weapons[bullets[i].weapon].name=="rpg7" or weapons[bullets[i].weapon].name=="cannon" or weapons[bullets[i].weapon].name=="cannon2") bullets[i].loop.close();
+@bullets[i]=null;
+bullets.remove_at(i);
+break;
+}
+}
+}
+}
+void spawn_bullet(int p1, int p2, int p3, int p4, int p5, int p6, int p7, string own="me", int weapon=w, string own2="")
+{
+bullet b1(p1,p2,p3,p4,p5,p6,p7,own,weapon,own2);
+bullets.insert_last(b1);
+}
+void destroy_all_bullets()
+{
+for (uint i=0; i<bullets.length(); i++)
+{
+bullets[i].loop.close();
+}
+bullets.resize(0);
+}

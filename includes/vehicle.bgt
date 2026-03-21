@@ -1,0 +1,294 @@
+class vehicle
+{
+double x, y, z, fuel, speed, health;
+int windowtime=2431, slowtime=50, minpitch=0, maxpitch=200, falltime=125;
+string type;
+bool crashed=false, engine_on=false, window=false, slowable, accelerator=false, accelerate=false, falling=false;
+timer windowtimer, slowtimer, speedtimer, fueltimer, falltimer;
+sound_object engine, notcar;
+void loop()
+{
+if(itsaircraft)
+{
+if((get_tile_at(x, y, z)=="" or get_tile_at(x, y, z)=="air") and engine_on==false and z>min.z and falltimer.elapsed>falltime)
+{
+if(z<min.z)
+{
+z=min.z;
+falling=false;
+return;
+}
+if(get_tile_at(x, y, z)!="" and get_tile_at(x, y, z)!="air")
+{
+p.play_3d("explode"+random(1,28)+"", me.x, me.y, me.z, x, y, z, facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+falling=false;
+return;
+}
+falltimer.restart();
+fallcounter++;
+z--;
+}
+}
+else
+{
+if((get_tile_at(x, y, z)=="" or get_tile_at(x, y, z)=="air") and z>min.z and falltimer.elapsed>falltime)
+{
+if(z<min.z)
+{
+z=min.z;
+falling=false;
+return;
+}
+if(get_tile_at(x, y, z)!="" and get_tile_at(x, y, z)!="air")
+{
+p.play_3d("explode"+random(1,28)+"", me.x, me.y, me.z, x, y, z, facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
+falling=false;
+return;
+}
+falltimer.restart();
+fallcounter++;
+z--;
+}
+}
+if(accelerate)
+{
+if(accelerator and engine_on)
+{
+slowable=false;
+if(itscar or itsaircraft)
+{
+if (engine.pitch<maxpitch)
+{
+engine.setpitch(engine.pitch+1);
+engine.setspeed(engine.pitch+1);
+}
+}
+else
+{
+if (notcar.pitch<maxpitch)
+{
+notcar.setpitch(notcar.pitch+1);
+notcar.setspeed(notcar.pitch+1);
+}
+}
+}
+else if(accelerator==false and engine_on)
+{
+slowable=true;
+if(itscar or itsaircraft)
+{
+if (engine.pitch>minpitch)
+{
+engine.setpitch(engine.pitch-1);
+engine.setspeed(engine.pitch-1);
+}
+}
+else
+{
+if (notcar.pitch>minpitch)
+{
+notcar.setpitch(notcar.pitch-1);
+notcar.setspeed(notcar.pitch-1);
+}
+}
+}
+if (slowtimer.elapsed>=slowtime and engine_on and slowable)
+{
+slowtimer.restart();
+if(itscar or itsaircraft)
+{
+if (engine.pitch>minpitch)
+{
+engine.setpitch(engine.pitch-1);
+engine.setspeed(engine.pitch-1);
+}
+}
+else
+{
+if (notcar.pitch>minpitch)
+{
+notcar.setpitch(notcar.pitch-1);
+notcar.setspeed(notcar.pitch-1);
+}
+}
+}
+}
+if(fueltimer.elapsed>=speed*50)
+{
+fueltimer.restart();
+fuel--;
+}
+if(fuel<=0)
+{
+if(engine_on)
+{
+if(itscar or itsaircraft)
+{
+engine.stop();
+p.play_stationary(type+"_stop_int",0,100,0,0,false);
+}
+else
+{
+notcar.stop();
+p.play_stationary(type+"_stop",0,100,0,0,false);
+}
+engine_on=false;
+}
+}
+}
+void start_vehicle()
+{
+if(fuel<=0)
+{
+speak("refuel the "+type+" first");
+return;
+}
+if(!engine_on)
+{
+if(itscar or itsaircraft)
+{
+p.play_stationary(type+"_start_int",0,100,0,0,false);
+engine.load_looped(type+"_engine_int");
+engine.play();
+engine.setpitch(0);
+engine.setspeed(0);
+}
+else
+{
+p.play_stationary(type+"_start",0,100,0,0,false);
+notcar.load_looped(type+"_idle");
+notcar.play();
+notcar.setpitch(0);
+notcar.setspeed(0);
+}
+engine_on=true;
+}
+}
+void stop_vehicle()
+{
+if(engine_on)
+{
+if(itscar or itsaircraft) engine.stop();
+else notcar.stop();
+p.play_stationary(type+"_stop_int",0,100,0,0,false);
+engine_on=false;
+}
+}
+void move_vehicle(string direction="")
+{
+if(accelerate==false) accelerate=true;
+if(direction=="") accelerator=false;
+else accelerator=true;
+this.x=me.x;
+this.y=me.y;
+this.z=me.z;
+if(direction==Forward and this.y<=max.y)
+{
+if(string_contains(get_tile_at(this.x,this.y,this.z),"wall",1)>-1)
+{
+p.play_stationary("vehicle_c"+random(1,6)+"",0,100,0,0,false);
+gameinv.give(type,-1);
+crashed=true;
+}
+if(crashed==false and this.y<max.y)
+{
+this.y++;
+if(this.y>max.y)
+this.y=max.y;
+}
+me.x=this.x;
+me.y=this.y;
+check_radar(direction);
+}
+else if(direction==Backward and this.y>=min.y)
+{
+if(string_contains(get_tile_at(this.x,this.y,this.z),"wall",1)>-1 or get_tile_at(this.x,this.x,this.z)=="")
+{
+p.play_stationary("vehicle_c"+random(1,6)+"",0,100,0,0,false);
+gameinv.give(type,-1);
+crashed=true;
+}
+if(crashed==false and this.y>min.y)
+{
+this.y--;
+if(this.y<min.y)
+this.y=min.y;
+}
+me.x=this.x;
+me.y=this.y;
+check_radar(direction);
+}
+else if(direction==Left and this.x>=min.x)
+{
+if(string_contains(get_tile_at(this.x,this.y,this.z),"wall",1)>-1)
+{
+p.play_stationary("vehicle_c"+random(1,6)+"",0,100,0,0,false);
+gameinv.give(type,-1);
+crashed=true;
+}
+if(crashed==false and this.x>min.x)
+{
+this.x--;
+if(this.x<min.x)
+this.x=min.x;
+}
+me.x=this.x;
+me.x=this.x;
+check_radar(direction);
+}
+else if(direction==Right and this.x<=max.x)
+{
+if(string_contains(get_tile_at(this.x,this.y,this.z),"wall",1)>-1)
+{
+p.play_stationary("vehicle_c"+random(1,6)+"",0,100,0,0,false);
+gameinv.give(type,-1);
+crashed=true;
+}
+if(crashed==false and this.x<max.x)
+{
+this.x++;
+if(this.x>max.x)
+this.x=max.x;
+}
+me.x=this.x;
+me.x=this.x;
+check_radar(direction);
+}
+}
+void check_radar(string dir)
+{
+for(uint i=0; i<35; i++)
+{
+if(dir==Forward and (string_contains(get_tile_at(this.x,this.y+i,this.z),"wall",1)>-1 or get_tile_at(this.x,this.y+i,this.z)==""))
+{
+p.play_stationary("notify_voicecommand",0,100,0,0,false);
+break;
+}
+if(dir==Backward and (string_contains(get_tile_at(this.x,this.y-i,this.z),"wall",1)>-1 or get_tile_at(this.x,this.y-i,this.z)==""))
+{
+p.play_stationary("notify_voicecommand",0,100,0,0,false);
+break;
+}
+if(dir==Left and (string_contains(get_tile_at(this.x-i,this.y,this.z),"wall",1)>-1 or get_tile_at(this.x-i,this.y,this.z)==""))
+{
+p.play_stationary("notify_voicecommand",0,100,0,0,false);
+break;
+}
+if(dir==Right and (string_contains(get_tile_at(this.x+i,this.y,this.z),"wall",1)>-1 or get_tile_at(this.x+i,this.y,this.z)==""))
+{
+p.play_stationary("notify_voicecommand",0,100,0,0,false);
+break;
+}
+if(dir==Up and string_contains(get_tile_at(this.x,this.y,this.z+i),"wall",1)>-1)
+{
+p.play_stationary("notify_voicecommand",0,100,0,0,false);
+break;
+}
+if(dir==Down and string_contains(get_tile_at(this.x,this.y,this.z-i),"wall",1)>-1)
+{
+p.play_stationary("notify_voicecommand",0,100,0,0,false);
+break;
+}
+}
+}
+}
