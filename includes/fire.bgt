@@ -39,7 +39,7 @@ break;
 }
 }
 }
-if(get_3d_distance(fires[i].x, fires[i].y, fires[i].z, me.x, me.y, me.z)<=5 and fires[i].hurttimer.elapsed>=fires[i].hurttime)
+if(get_3d_distance(fires[i].x, fires[i].y, fires[i].z, me.x, me.y, me.z)<=3 and fires[i].hurttimer.elapsed>=fires[i].hurttime)
 {
 fires[i].hurttimer.restart;
 p.play_stationary("pain"+random(1,5),0,100,0,0,false);
@@ -55,7 +55,7 @@ objs.remove_at(i2);
 }
 for (uint i2=0; i2<enemies.length(); i2++)
 {
-if(get_3d_distance(fires[i].x, fires[i].y, fires[i].z, enemies[i2].x, enemies[i2].y, enemies[i2].z)<=5 and enemies[i2].dead==false and fires[i].hurttimer.elapsed>=fires[i].hurttime)
+if(get_3d_distance(fires[i].x, fires[i].y, fires[i].z, enemies[i2].x, enemies[i2].y, enemies[i2].z)<=3 and enemies[i2].dead==false and fires[i].hurttimer.elapsed>=fires[i].hurttime)
 {
 fires[i].hurttimer.restart;
 if(enemies[i2].type==25) p.play_3d("policehit"+random(1,7),me.x,me.y,me.z,enemies[i2].x,enemies[i2].y,enemies[i2].z,facing*pi/180,0,0,0,0,0,0,0,100,0,0,false);
