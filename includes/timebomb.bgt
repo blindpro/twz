@@ -36,7 +36,7 @@ if(get_3d_distance(timebombs[i].x, timebombs[i].y, timebombs[i].z, me.x, me.y, m
 {
 p.play_stationary("timebombhit",0,100,0,0,false);
 p.play_stationary("pain"+random(1,5),0,100,0,0,false);
-health-=random(100,10000);
+health-=random(200, 800);
 }
 for (uint i2=0; i2<objs.length(); i2++)
 {
